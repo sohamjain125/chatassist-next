@@ -36,6 +36,7 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({
   const router = useRouter();
   const [userName, setUserName] = useState('User');
   const { state: sidebarState } = useSidebar();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     // Only access localStorage on the client side
@@ -45,11 +46,20 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({
     }
   }, []);
 
+  useEffect(() => {
+    const token = document.cookie.split('; ').find(row => row.startsWith('auth_token='))?.split('=')[1];
+    setIsAuthenticated(!!token);
+  }, []);
+
   const handleLogout = () => {
-    document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    document.cookie = 'auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
     localStorage.removeItem('userName');
     router.push('/login');
   };
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <header className={`fixed top-0 right-0 z-50 bg-white border-b h-14 transition-[left] duration-300 ${sidebarState === 'expanded' ? 'left-64' : 'left-0'}`}>

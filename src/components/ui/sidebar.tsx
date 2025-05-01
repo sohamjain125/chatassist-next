@@ -1,14 +1,18 @@
+'use client';
+
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { VariantProps, cva } from "class-variance-authority"
-import { PanelLeft } from "lucide-react"
+import { PanelLeft, Menu } from "lucide-react"
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
-import { Sheet, SheetContent } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   Tooltip,
@@ -16,6 +20,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const SIDEBAR_COOKIE_NAME = "sidebar:state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
@@ -67,6 +72,7 @@ const SidebarProvider = React.forwardRef<
   ) => {
     const isMobile = useIsMobile()
     const [openMobile, setOpenMobile] = React.useState(false)
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     // This is the internal state of the sidebar.
     // We use openProp and setOpenProp for control from outside the component.
@@ -114,6 +120,11 @@ const SidebarProvider = React.forwardRef<
     // This makes it easier to style the sidebar with Tailwind classes.
     const state = open ? "expanded" : "collapsed"
 
+    React.useEffect(() => {
+      const token = document.cookie.split('; ').find(row => row.startsWith('auth_token='))?.split('=')[1];
+      setIsAuthenticated(!!token);
+    }, []);
+
     const contextValue = React.useMemo<SidebarContext>(
       () => ({
         state,
@@ -126,6 +137,10 @@ const SidebarProvider = React.forwardRef<
       }),
       [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar]
     )
+
+    if (!isAuthenticated) {
+      return null;
+    }
 
     return (
       <SidebarContext.Provider value={contextValue}>
@@ -758,4 +773,37 @@ export {
   SidebarSeparator,
   SidebarTrigger,
   useSidebar,
+}
+
+export function MobileSidebar() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const token = document.cookie.split('; ').find(row => row.startsWith('auth_token='))?.split('=')[1];
+    setIsAuthenticated(!!token);
+  }, []);
+
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  return (
+    <Sheet>
+      <SheetTrigger asChild>
+        <Button variant="ghost" size="icon" className="md:hidden">
+          <Menu className="h-5 w-5" />
+          <span className="sr-only">Toggle menu</span>
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="left" className="p-0">
+        <ScrollArea className="my-4 h-[calc(100vh-8rem)] pb-10">
+          <div className="flex flex-col space-y-3 py-2">
+            <Sidebar>
+              {/* Your sidebar items here */}
+            </Sidebar>
+          </div>
+        </ScrollArea>
+      </SheetContent>
+    </Sheet>
+  );
 }

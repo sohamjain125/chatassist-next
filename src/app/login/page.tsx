@@ -15,7 +15,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams() || new URLSearchParams();
   const { toast } = useToast();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -30,7 +30,7 @@ export default function Login() {
       });
       const data = await res.json();
       if (res.ok && data.token) {
-        document.cookie = `token=${data.token}; path=/`;
+        document.cookie = `auth_token=${data.token}; path=/`;
         toast({
           title: 'Login successful',
           description: 'Welcome back!',
@@ -110,4 +110,4 @@ export default function Login() {
       </Card>
     </div>
   );
-}
+} 

@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { cookies } from 'next/headers';
 
 const HISTORY_KEY = 'property_search_history';
 
@@ -37,6 +38,15 @@ export default function Dashboard() {
     
     setRecentSearches(loadHistory());
   }, []);
+
+  useEffect(() => {
+    // Check for token on client side
+    const token = document.cookie.split('; ').find(row => row.startsWith('auth_token='))?.split('=')[1];
+    
+    if (!token) {
+      router.push('/login');
+    }
+  }, [router]);
 
   // Format date function
   const formatDate = (dateString: string) => {
@@ -150,10 +160,7 @@ export default function Dashboard() {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      onClick={() => router.push({
-                        pathname: '/property',
-                        query: { data: JSON.stringify(search) }
-                      })}
+                      onClick={() => router.push(`/property?data=${encodeURIComponent(JSON.stringify(search))}`)}
                     >
                       View Details
                     </Button>

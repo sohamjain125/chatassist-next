@@ -101,7 +101,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
               ))}
             </SidebarMenu>
           </SidebarContent>
-          <SidebarFooter>
+          {/* <SidebarFooter>
             <Button
               variant="ghost"
               className="w-full justify-start gap-2"
@@ -110,7 +110,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
               <Menu className="h-5 w-5" />
               Logout
             </Button>
-          </SidebarFooter>
+          </SidebarFooter> */}
         </Sidebar>
         <div className="flex-1 flex flex-col min-w-0 transition-[padding-left] duration-300">
           <StickyHeader {...getHeaderProps()}>
