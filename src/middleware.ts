@@ -7,6 +7,16 @@ export function middleware(request: NextRequest) {
   const isAuthPage = request.nextUrl.pathname.startsWith('/login') || 
                     request.nextUrl.pathname.startsWith('/register')
   const isDashboardPage = request.nextUrl.pathname.startsWith('/dashboard')
+  const isRootPage = request.nextUrl.pathname === '/'
+
+  // If on root page, redirect based on auth status
+  if (isRootPage) {
+    if (token) {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    } else {
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
+  }
 
   // If no token and trying to access dashboard, redirect to login
   if (!token && isDashboardPage) {
@@ -23,5 +33,5 @@ export function middleware(request: NextRequest) {
 
 // See "Matching Paths" below to learn more
 export const config = {
-  matcher: ['/dashboard/:path*', '/login', '/register']
+  matcher: ['/', '/dashboard/:path*', '/login', '/register']
 } 
