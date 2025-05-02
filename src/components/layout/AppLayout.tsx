@@ -15,6 +15,8 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import StickyHeader from './StickyHeader';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBuilding } from '@fortawesome/free-solid-svg-icons';
 
 // Sidebar toggle button component
 const SidebarToggle = () => {
@@ -43,9 +45,6 @@ const AppLayout = ({ children }: AppLayoutProps) => {
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Map },
-    // { name: 'Search', href: '/search', icon: Building2 },
-    // { name: 'History', href: '/history', icon: History },
-    // { name: 'Chatbot', href: '/chatbot', icon: MessageSquare },
   ];
 
   const handleLogout = () => {
@@ -79,7 +78,11 @@ const AppLayout = ({ children }: AppLayoutProps) => {
         <Sidebar className="fixed top-0 left-0 h-screen z-40 w-64">
           <SidebarHeader className="flex h-14 items-center border-b px-4">
             <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
-              <Building2 className="h-6 w-6" />
+              {/* <Building2 className="h-6 w-6" /> */}
+              <FontAwesomeIcon
+                icon={faBuilding}
+                style={{ color: "#4c95bb", fontSize: "24px" }}
+              />
               <span className="text-xl font-bold">AddressHub</span>
             </Link>
           </SidebarHeader>
@@ -87,6 +90,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
             <SidebarMenu>
               {navigation.map((item) => (
                 <SidebarMenuItem key={item.name}>
+                  <div className="flex items-center gap-2 font-semibold">
                   <SidebarMenuButton
                     asChild
                     isActive={pathname === item.href}
@@ -94,23 +98,16 @@ const AppLayout = ({ children }: AppLayoutProps) => {
                   >
                     <Link href={item.href} className="flex items-center gap-3">
                       <item.icon className="h-5 w-5" />
-                      <span>{item.name}</span>
+                      <span className='text-lg'>{item.name}</span>
                     </Link>
                   </SidebarMenuButton>
+                  </div>
+                  
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
           </SidebarContent>
-          {/* <SidebarFooter>
-            <Button
-              variant="ghost"
-              className="w-full justify-start gap-2"
-              onClick={handleLogout}
-            >
-              <Menu className="h-5 w-5" />
-              Logout
-            </Button>
-          </SidebarFooter> */}
+         
         </Sidebar>
         <div className="flex-1 flex flex-col min-w-0 transition-[padding-left] duration-300">
           <StickyHeader {...getHeaderProps()}>

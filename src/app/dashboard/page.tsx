@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { cookies } from 'next/headers';
-
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faComments, faHouse, faLocationDot } from '@fortawesome/free-solid-svg-icons';
 const HISTORY_KEY = 'property_search_history';
 
 interface HistoryItem {
@@ -81,10 +82,15 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="h-36 flex items-center justify-center bg-muted/50 rounded-md mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary/70">
+              {/* <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary/70">
                 <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
                 <circle cx="12" cy="10" r="3"></circle>
-              </svg>
+              </svg> */}
+               <FontAwesomeIcon
+                  icon={faLocationDot}
+                  beat
+                  style={{ color: '#4c95bb' ,fontSize: '64px' }}
+                />
             </div>
             <Button className="w-full" onClick={() => router.push("/search")}>
               Search Properties
@@ -99,11 +105,18 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="h-36 flex items-center justify-center bg-muted/50 rounded-md mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary/70">
+              {/* <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary/70">
                 <path d="M3 21h18"></path>
                 <path d="M19 21v-8.93a2 2 0 0 0-.9-1.67l-7-4.67a2 2 0 0 0-2.2 0l-7 4.67A2 2 0 0 0 1 12.07V21"></path>
                 <path d="M9 21v-6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v6"></path>
-              </svg>
+              </svg> */}
+                <FontAwesomeIcon
+                  icon={faHouse}
+                  beat
+                  style={{ color: "#4c95bb", fontSize: "64px" }}
+                />
+
+
             </div>
             <Button className="w-full" onClick={() => router.push("/history")}>
               View Property History
@@ -118,9 +131,14 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="h-36 flex items-center justify-center bg-muted/50 rounded-md mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary/70">
+              {/* <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary/70">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-              </svg>
+              </svg> */}
+                <FontAwesomeIcon
+                  icon={faComments}
+                  beat
+                  style={{ color: "#4c95bb", fontSize: "64px" }}
+                />
             </div>
             <Button className="w-full" onClick={() => router.push("/chat")}>
               Chat With Assistant
