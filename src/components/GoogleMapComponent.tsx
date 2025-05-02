@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from "react";
 
 interface GoogleMapComponentProps {
@@ -9,9 +8,6 @@ interface GoogleMapComponentProps {
   }>;
   height?: string;
 }
-
-// The key is already present below as you provided.
-const GOOGLE_MAPS_API_KEY = "AIzaSyDkKI4y8B1QlYa3psHE32lF5xDHDwThJmg";
 
 declare global {
   interface Window {
@@ -27,7 +23,7 @@ export default function GoogleMapComponent({ markers = [], height = "500px" }: G
     // Dynamically load Google Maps script if not loaded
     if (!window.google || !window.google.maps) {
       const script = document.createElement("script");
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`;
       script.async = true;
       script.onload = () => {
         initializeMap();

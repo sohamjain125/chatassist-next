@@ -1,3 +1,5 @@
+/// <reference types="@types/google.maps" />
+
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -29,10 +31,9 @@ interface MapProps {
   center: Location;
   buildingOutline: BuildingOutline; // Made required since we're removing static data
   onBuildingSelect?: (building: BuildingOutline) => void;
-  apiKey: string; // Make API key a prop instead of hardcoding
 }
 
-const Map = ({ center, buildingOutline, onBuildingSelect, apiKey }: MapProps) => {
+const Map = ({ center, buildingOutline, onBuildingSelect }: MapProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const polygonRef = useRef<google.maps.Polygon | null>(null);
@@ -46,7 +47,7 @@ const Map = ({ center, buildingOutline, onBuildingSelect, apiKey }: MapProps) =>
       return;
     }
     const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=geometry,drawing&callback=initMap`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=geometry,drawing&callback=initMap`;
     script.async = true;
     script.defer = true;
     document.head.appendChild(script);
@@ -54,7 +55,7 @@ const Map = ({ center, buildingOutline, onBuildingSelect, apiKey }: MapProps) =>
     (window as any).initMap = () => {
       (window as GoogleWindow).googleMapsLoaded = true;
     };
-  }, [apiKey]);
+  }, []);
 
   // Cleanup function
   const cleanup = useCallback(() => {

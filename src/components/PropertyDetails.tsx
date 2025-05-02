@@ -7,7 +7,6 @@ import Map from '@/components/Map';
 import { Button } from '@/components/ui/button';
 import { propertyApi, PropertyDetails as PropertyDetailsType } from '@/services/api';
 import { Loader2 } from 'lucide-react';
-import { theme } from '@/styles/theme';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import StickyHeader from './layout/StickyHeader';
@@ -194,7 +193,6 @@ export default function PropertyDetails({
               <Card className="overflow-hidden">
                 <div className="h-[250px] w-full">
                   <Map
-                    apiKey="AIzaSyDkKI4y8B1QlYa3psHE32lF5xDHDwThJmg"
                     center={location}
                     buildingOutline={buildingOutline}
                   />

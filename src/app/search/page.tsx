@@ -10,7 +10,6 @@ import AddressDetails from '@/components/AddressDetails';
 import { Card, CardContent } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyDkKI4y8B1QlYa3psHE32lF5xDHDwThJmg";
 const SEARCH_STATE_KEY = 'property_search_state';
 
 interface AddressResult {
@@ -99,7 +98,7 @@ export default function Search() {
 
       // Load Google Maps script if not already loaded
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`;
       script.async = true;
       script.defer = true;
       script.onload = () => {
@@ -138,7 +137,7 @@ export default function Search() {
     
     try {
       const response = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(searchQuery)}&key=${GOOGLE_MAPS_API_KEY}`
+        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(searchQuery)}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`
       );
 
       if (!response.ok) {
@@ -346,7 +345,6 @@ export default function Search() {
               <div className="bg-white rounded-lg shadow-sm p-4">
                 <div className="h-[400px]">
                   <Map
-                    apiKey={GOOGLE_MAPS_API_KEY}
                     center={searchResult.results[0].geometry.location}
                     buildingOutline={buildingData}
                   />
