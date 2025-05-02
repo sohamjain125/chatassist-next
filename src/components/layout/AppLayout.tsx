@@ -69,7 +69,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
       '/property': 'Property Details'
     };
     
-    return { title: titles[pathname] || 'AddressHub' };
+    return { title: titles[pathname ?? ''] || 'AddressHub' };
   };
 
   return (
