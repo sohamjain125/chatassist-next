@@ -30,11 +30,12 @@ export default function Register() {
     }
 
     try {
-      const res = await fetch('http://localhost:5000/api/auth/register', {
+      const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       });
+
       const data = await res.json();
       if (res.ok && data.token) {
         // Set cookie instead of localStorage
@@ -45,10 +46,10 @@ export default function Register() {
         });
         router.push('/dashboard');
       } else {
-        setError(data.error || 'Registration failed');
+        setError(data.message || 'Registration failed');
         toast({
           title: 'Registration failed',
-          description: data.error || 'Please try again.',
+          description: data.message || 'Please try again.',
           variant: 'destructive',
         });
       }
@@ -115,8 +116,8 @@ export default function Register() {
           </form>
 
           <div className="mt-4 text-center text-sm">
-            <Link 
-              href="/login" 
+            <Link
+              href="/login"
               className="text-primary hover:text-primary/90 hover:underline"
             >
               Already have an account? Sign in

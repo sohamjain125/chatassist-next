@@ -1,37 +1,56 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { jwtVerify } from 'jose'
 
 // This function can be marked `async` if using `await` inside
-export function middleware(request: NextRequest) {
-  const token = request.cookies.get('auth_token')?.value
-  const isAuthPage = request.nextUrl.pathname.startsWith('/login') || 
-                    request.nextUrl.pathname.startsWith('/register')
-  const isDashboardPage = request.nextUrl.pathname.startsWith('/dashboard')
-  const isRootPage = request.nextUrl.pathname === '/'
+export async function middleware(request: NextRequest) {
+  // Get the pathname of the request
+  const path = request.nextUrl.pathname
 
-  // If on root page, redirect based on auth status
-  if (isRootPage) {
-    if (token) {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
-    } else {
-      return NextResponse.redirect(new URL('/login', request.url))
+  // Define public paths that don't require authentication
+  const isPublicPath = path === '/login' || path === '/register'
+
+  // Get the token from the cookies
+  const token = request.cookies.get('token')?.value || ''
+
+  // Verify the token
+  let isAuthenticated = false
+  if (token) {
+    try {
+      const secret = new TextEncoder().encode(
+        process.env.JWT_SECRET || 'your-secret-key'
+      )
+      await jwtVerify(token, secret)
+      isAuthenticated = true
+    } catch (error) {
+      isAuthenticated = false
     }
   }
 
-  // If no token and trying to access dashboard, redirect to login
-  if (!token && isDashboardPage) {
-    return NextResponse.redirect(new URL('/login', request.url))
+  // Redirect logic
+  if (isPublicPath && isAuthenticated) {
+    // If user is authenticated and tries to access login/register, redirect to home
+    return NextResponse.redirect(new URL('/', request.url))
   }
 
-  // If has token and trying to access auth pages, redirect to dashboard
-  if (token && isAuthPage) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+  if (!isPublicPath && !isAuthenticated) {
+    // If user is not authenticated and tries to access protected route, redirect to login
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
   return NextResponse.next()
 }
 
-// See "Matching Paths" below to learn more
+// Configure which routes to run middleware on
 export const config = {
-  matcher: ['/', '/dashboard/:path*', '/login', '/register']
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+  ],
 } 

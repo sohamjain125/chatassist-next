@@ -22,15 +22,17 @@ export default function Login() {
     e.preventDefault();
     setIsLoading(true);
     setError('');
+
     try {
-      const res = await fetch('http://localhost:5000/api/auth/login', {
+      const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       });
+
       const data = await res.json();
       if (res.ok && data.token) {
-        document.cookie = `auth_token=${data.token}; path=/`;
+        document.cookie = `token=${data.token}; path=/`;
         toast({
           title: 'Login successful',
           description: 'Welcome back!',
@@ -38,10 +40,10 @@ export default function Login() {
         const from = searchParams.get('from') || '/dashboard';
         router.push(from);
       } else {
-        setError(data.error || 'Login failed');
+        setError(data.message || 'Login failed');
         toast({
           title: 'Login failed',
-          description: data.error || 'Please check your credentials and try again.',
+          description: data.message || 'Please check your credentials and try again.',
           variant: 'destructive',
         });
       }
@@ -99,8 +101,8 @@ export default function Login() {
           </form>
 
           <div className="mt-4 text-center text-sm">
-            <Link 
-              href="/register" 
+            <Link
+              href="/register"
               className="text-primary hover:text-primary/90 hover:underline"
             >
               Don't have an account? Sign up
