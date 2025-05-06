@@ -24,6 +24,12 @@ interface StickyHeaderProps {
   showBackButton?: boolean;
 }
 
+interface UserInfo {
+  firstname: string;
+  lastname: string;
+  email: string;
+}
+
 const StickyHeader: React.FC<StickyHeaderProps> = ({ 
   title, 
   address, 
@@ -34,16 +40,31 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({
   showBackButton = false
 }) => {
   const router = useRouter();
-  const [userName, setUserName] = useState('User');
+  const [userInfo, setUserInfo] = useState<UserInfo>({ firstname: '', lastname: '', email: '' });
   const { state: sidebarState } = useSidebar();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    // Only access localStorage on the client side
-    const storedName = localStorage.getItem('userName');
-    if (storedName) {
-      setUserName(storedName);
-    }
+    const fetchUserInfo = async () => {
+      const token = document.cookie.split('; ').find(row => row.startsWith('auth_token='))?.split('=')[1];
+      if (token) {
+        try {
+          const response = await fetch('/api/auth/user', {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          const data = await response.json();
+          if (data.success) {
+            setUserInfo(data.user);
+          }
+        } catch (error) {
+          console.error('Error fetching user info:', error);
+        }
+      }
+    };
+
+    fetchUserInfo();
   }, []);
 
   useEffect(() => {
@@ -53,7 +74,6 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({
 
   const handleLogout = () => {
     document.cookie = 'auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-    localStorage.removeItem('userName');
     router.push('/login');
   };
 
@@ -94,7 +114,9 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({
         </div>
 
         <div className="flex items-center gap-2 shrink-0 ml-4">
-          <span className="text-sm text-gray-600 hidden md:block">Welcome, {userName}</span>
+          <span className="text-sm text-gray-600 hidden md:block">
+            Welcome, {userInfo.firstname} {userInfo.lastname}
+          </span>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
@@ -105,9 +127,9 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{userName}</p>
+                  <p className="text-sm font-medium leading-none">{userInfo.firstname} {userInfo.lastname}</p>
                   <p className="text-xs leading-none text-muted-foreground">
-                    Welcome to AddressHub
+                    {userInfo.email}
                   </p>
                 </div>
               </DropdownMenuLabel>
