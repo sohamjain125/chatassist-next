@@ -158,7 +158,7 @@ export default function PropertyDetails({
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 mt-12">
       <StickyHeader title="Property Details" >
         <SidebarToggle />
       </StickyHeader>
