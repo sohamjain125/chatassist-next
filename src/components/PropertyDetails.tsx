@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import StickyHeader from './layout/StickyHeader';
 import { useSidebar } from './ui/sidebar';
+import InfoCard from '@/components/ui/InfoCard';
 
 interface PropertyDetailsProps {
   propertyId?: string;
@@ -147,22 +148,6 @@ export default function PropertyDetails({
     );
   };
 
-  // Question buttons for the right section
-  const questions = [
-    {
-      label: 'Do you want to apply for a planning permit?',
-      message: `I want to apply for a planning permit for the property at ${displayAddress}.`,
-    },
-    {
-      label: 'Do you want to apply for a building permit?',
-      message: `I want to apply for a building permit for the property at ${displayAddress}.`,
-    },
-    {
-      label: 'Do you want more info about this property?',
-      message: `Can you provide more information about the property at ${displayAddress}?`,
-    },
-  ];
-
   return (
     <div className="space-y-3">
       <StickyHeader title="Property Details" >
@@ -270,18 +255,27 @@ export default function PropertyDetails({
         {/* Right Section */}
         <div className="lg:col-span-7 flex flex-col gap-4">
           <Card className="p-6 flex flex-col gap-4">
-            <h3 className="text-lg font-semibold mb-2">What would you like to do?</h3>
-            {questions.map((q, idx) => (
-              <Button
-                key={idx}
-                variant="outline"
-                className="justify-start text-left"
-                onClick={() => router.push(`/chat?message=${encodeURIComponent(q.message)}`)}
-              >
-                <MessageSquare className="w-4 h-4 mr-2" />
-                {q.label}
-              </Button>
-            ))}
+          <h3 className="text-lg font-semibold mb-2">What would you like to do?</h3>
+            <InfoCard
+              icon={
+                <svg className="h-12 w-12 mx-auto text-primary" viewBox="0 0 24 24">
+                  <path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/>
+                  <path fill="currentColor" d="M7 12h2v5H7zm4-3h2v8h-2zm4-3h2v11h-2z"/>
+                </svg>
+              }
+              title="Planning assessment report"
+              description="Our instant tool shows whether your project in NSW is eligible for fast CDC approval. With a transparent audit trail, it shows max height and floor area, min lot area, and other building rules."
+            />
+            <InfoCard
+              icon={
+                <svg className="h-12 w-12 mx-auto text-primary" viewBox="0 0 24 24">
+                  <path fill="currentColor" d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 18H6V4h12v16z"/>
+                  <path fill="currentColor" d="M8 6h8v2H8zm0 4h8v2H8zm0 4h8v2H8z"/>
+                </svg>
+              }
+              title="Ai chat"
+              description="Ai chat is a tool that allows you to chat with the ai to get information about the property."
+            />
           </Card>
         </div>
       </div>
