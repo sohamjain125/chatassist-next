@@ -17,7 +17,7 @@ type MessageType = {
 
 export default function Chatbot() {
   const searchParams = useSearchParams();
-  const initialMessage = searchParams.get('message');
+  const initialMessage = searchParams?.get('message') ?? null;
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [isTyping, setIsTyping] = useState(false);
