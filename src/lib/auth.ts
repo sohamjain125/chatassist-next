@@ -64,4 +64,29 @@ export async function loginUser(email: string, password: string) {
   } catch (err: any) {
     return { error: err.message };
   }
+}
+
+export async function verifyToken(token: string) {
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as { id: number, email: string };
+    
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input('id', sql.Int, decoded.id)
+      .query('SELECT id, firstName, lastName, email FROM Users WHERE id = @id');
+
+    const user = result.recordset[0];
+    if (!user) {
+      return null;
+    }
+
+    return {
+      id: user.id,
+      firstname: user.firstName,
+      lastname: user.lastName,
+      email: user.email
+    };
+  } catch (err) {
+    return null;
+  }
 } 

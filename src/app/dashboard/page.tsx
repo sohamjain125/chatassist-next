@@ -18,9 +18,15 @@ interface HistoryItem {
   [key: string]: any;
 }
 
+interface UserInfo {
+  firstname: string;
+  lastname: string;
+}
+
 export default function Dashboard() {
   const router = useRouter();
   const [recentSearches, setRecentSearches] = useState<HistoryItem[]>([]);
+  const [userInfo, setUserInfo] = useState<UserInfo>({ firstname: '', lastname: '' });
   
   // Load search history on component mount
   useEffect(() => {
@@ -46,6 +52,25 @@ export default function Dashboard() {
     
     if (!token) {
       router.push('/login');
+    } else {
+      // Fetch user information
+      fetch('/api/auth/user', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setUserInfo({
+            firstname: data.user.firstname,
+            lastname: data.user.lastname
+          });
+        }
+      })
+      .catch(err => {
+        console.error('Error fetching user info:', err);
+      });
     }
   }, [router]);
 
@@ -68,13 +93,15 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Welcome back, John!</h1>
+        <h1 className="text-3xl font-bold tracking-tight">
+          Welcome back, {userInfo.firstname} {userInfo.lastname}!
+        </h1>
         <p className="text-muted-foreground">
           Here's what's happening with your property searches
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg">Search New Address</CardTitle>
@@ -82,10 +109,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="h-36 flex items-center justify-center bg-muted/50 rounded-md mb-4">
-              {/* <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary/70">
-                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
-                <circle cx="12" cy="10" r="3"></circle>
-              </svg> */}
+             
                <FontAwesomeIcon
                   icon={faLocationDot}
                   beat
@@ -105,11 +129,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="h-36 flex items-center justify-center bg-muted/50 rounded-md mb-4">
-              {/* <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary/70">
-                <path d="M3 21h18"></path>
-                <path d="M19 21v-8.93a2 2 0 0 0-.9-1.67l-7-4.67a2 2 0 0 0-2.2 0l-7 4.67A2 2 0 0 0 1 12.07V21"></path>
-                <path d="M9 21v-6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v6"></path>
-              </svg> */}
+           
                 <FontAwesomeIcon
                   icon={faHouse}
                   beat
@@ -124,27 +144,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
         
-        <Card className="hover:shadow-md transition-shadow">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Chatbot Assistant</CardTitle>
-            <CardDescription>Get help with property questions</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-36 flex items-center justify-center bg-muted/50 rounded-md mb-4">
-              {/* <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary/70">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-              </svg> */}
-                <FontAwesomeIcon
-                  icon={faComments}
-                  beat
-                  style={{ color: "#4c95bb", fontSize: "64px" }}
-                />
-            </div>
-            <Button className="w-full" onClick={() => router.push("/chat")}>
-              Chat With Assistant
-            </Button>
-          </CardContent>
-        </Card>
+       
       </div>
       
       <div>
