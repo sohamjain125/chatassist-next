@@ -60,6 +60,13 @@ export default function PropertyDetails({
   const router = useRouter();
 
   useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
+
+  useEffect(() => {
     if (propertyData) {
       setLoading(false);
       return;
@@ -172,7 +179,7 @@ export default function PropertyDetails({
           {/* Sticky Address Section */}
 
           {/* Scrollable Map and Details Section */}
-          <div className="h-[calc(100vh-180px)] overflow-y-auto">
+          <div className="h-[calc(100vh-250px)] overflow-y-auto">
             <div className="space-y-4">
               {/* Map Card */}
               <Card className="overflow-hidden">

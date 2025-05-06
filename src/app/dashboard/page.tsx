@@ -74,6 +74,13 @@ export default function Dashboard() {
     }
   }, [router]);
 
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
+
   // Format date function
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
