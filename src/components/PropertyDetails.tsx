@@ -168,11 +168,7 @@ export default function PropertyDetails({
       <StickyHeader title="Property Details" >
         <SidebarToggle />
       </StickyHeader>
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-4">
-        {/* Left Section */}
-        <div className="lg:col-span-5 flex flex-col gap-4">
-          {/* Sticky Address Section */}
-          <div className="sticky top-[72px] z-10 bg-background">
+          <div className="top-[72px] z-10 bg-background">
             <Card className="p-4">
               <div className="flex items-start gap-2">
                 <MapPin className="h-5 w-5 text-gray-500 mt-1" />
@@ -185,6 +181,10 @@ export default function PropertyDetails({
               </div>
             </Card>
           </div>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-4">
+        {/* Left Section */}
+        <div className="lg:col-span-5 flex flex-col gap-4">
+          {/* Sticky Address Section */}
 
           {/* Scrollable Map and Details Section */}
           <div className="h-[calc(100vh-180px)] overflow-y-auto">
