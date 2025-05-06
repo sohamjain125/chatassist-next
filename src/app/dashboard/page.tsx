@@ -97,14 +97,14 @@ export default function Dashboard() {
           Welcome back, {userInfo.firstname} {userInfo.lastname}!
         </h1>
         <p className="text-muted-foreground">
-          Here's what's happening with your property searches
+        How would you like to me to help you today?
         </p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Search New Address</CardTitle>
+            <CardTitle className="text-lg">Search new address</CardTitle>
             <CardDescription>Find detailed information about any property</CardDescription>
           </CardHeader>
           <CardContent>
@@ -124,7 +124,7 @@ export default function Dashboard() {
         
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Property History</CardTitle>
+            <CardTitle className="text-lg">Historical Requests</CardTitle>
             <CardDescription>View historical data and transactions</CardDescription>
           </CardHeader>
           <CardContent>
