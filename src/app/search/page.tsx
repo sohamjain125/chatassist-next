@@ -272,6 +272,9 @@ export default function Search() {
     setSearchQuery(suggestion);
     setShowSuggestions(false);
     inputRef.current?.focus();
+    // Create a synthetic event to trigger the search
+    const syntheticEvent = { preventDefault: () => {} } as React.FormEvent;
+    handleSearch(syntheticEvent);
   };
 
   return (
@@ -323,6 +326,7 @@ export default function Search() {
                         key={idx}
                         className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
                         onClick={() => handleSuggestionClick(suggestion)}
+                        
                       >
                         {suggestion}
                       </div>
