@@ -14,24 +14,39 @@ import {
   SidebarMenuButton,
   useSidebar,
 } from '@/components/ui/sidebar';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import StickyHeader from './StickyHeader';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBuilding } from '@fortawesome/free-solid-svg-icons';
 
 // Sidebar toggle button component
 const SidebarToggle = () => {
-  const { toggleSidebar } = useSidebar();
+  const { toggleSidebar, state } = useSidebar();
   
   return (
-    <Button 
-      variant="ghost" 
-      size="icon" 
-      onClick={toggleSidebar}
-      className="mr-2"
-    >
-      <Menu className="h-5 w-5" />
-      <span className="sr-only">Toggle sidebar</span>
-    </Button>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={toggleSidebar}
+            className="mr-2"
+          >
+            <Menu className="h-5 w-5" />
+            <span className="sr-only">Toggle sidebar</span>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          {state === 'expanded' ? 'Close sidebar' : 'Open sidebar'}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 };
 
