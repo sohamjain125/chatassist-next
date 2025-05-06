@@ -73,7 +73,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
   };
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={false}>
       <div className="min-h-screen flex w-full bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
         <Sidebar className="fixed top-0 left-0 h-screen z-40 w-64">
           <SidebarHeader className="flex h-14 items-center border-b px-4">

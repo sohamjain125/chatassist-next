@@ -10,6 +10,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import AppLayout from '@/components/layout/AppLayout';
 import { usePathname } from 'next/navigation';
+import { Footer } from '@/components/ui/footer';
 
 const queryClient = new QueryClient();
 
@@ -24,13 +25,26 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <TooltipProvider>
             <Toaster />
             <Sonner />
-            {isAuthPage ? (
-              children
-            ) : (
-              <AppLayout>
-                {children}
-              </AppLayout>
-            )}
+            <div className="flex flex-col min-h-screen">
+              {/* Header */}
+              <header className="w-full border-b bg-background">
+                {/* Your header content will go here */}
+              </header>
+
+              {/* Main Content */}
+              <main className="flex-grow pb-20">
+                {isAuthPage ? (
+                  children
+                ) : (
+                  <AppLayout>
+                    {children}
+                  </AppLayout>
+                )}
+              </main>
+
+              {/* Footer */}
+              <Footer />
+            </div>
           </TooltipProvider>
         </QueryClientProvider>
       </body>
