@@ -281,9 +281,9 @@ export default function Search() {
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold mb-4">Find planning answers for your property</h1>
+          <h1 className="text-3xl font-bold mb-4">Find answers for your property</h1>
           <p className="text-gray-600 mb-8">
-            PropCode's technology is taking the property industry forward with instant analysis for critical planning questions. Try it for free by entering an address below.
+            Adress Hub's technology is taking the property industry forward with instant analysis for critical planning questions. Try it for free by entering an address below.
           </p>
 
           <Card className="mb-8">
@@ -381,7 +381,7 @@ export default function Search() {
             </div>
           )}
 
-          {!searchResult && (
+          {/* {!searchResult && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
               <div className="text-center">
                 <div className="mb-4">
@@ -417,7 +417,7 @@ export default function Search() {
                 </p>
               </div>
             </div>
-          )}
+          )} */}
         </div>
       </div>
     </div>
