@@ -113,7 +113,7 @@ export default function PropertyPage() {
 
   return (
     <div className="min-h-screen">
-      <div className="container mx-auto py-4">
+      <div className="container mx-auto ">
         <PropertyDetails 
           propertyData={propertyData} 
         />

@@ -279,14 +279,14 @@ export default function Search() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-4">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold mb-4">Find answers for your property</h1>
-          <p className="text-gray-600 mb-8">
+          <p className="text-gray-600 mb-4">
             Adress Hub's technology is taking the property industry forward with instant analysis for critical planning questions. Try it for free by entering an address below.
           </p>
 
-          <Card className="mb-8">
+          <Card className="mb-4">
             <CardContent className="p-4">
               <div className="relative">
                 <Input
@@ -345,7 +345,7 @@ export default function Search() {
           )}
 
           {searchResult && buildingData && (
-            <div className="space-y-6">
+            <div className="space-y-1">
               <div className="bg-white rounded-lg shadow-sm p-4">
                 <div className="h-[400px]">
                   <Map
@@ -381,43 +381,7 @@ export default function Search() {
             </div>
           )}
 
-          {/* {!searchResult && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
-              <div className="text-center">
-                <div className="mb-4">
-                  <SearchIcon className="h-12 w-12 mx-auto text-primary" />
-                </div>
-                <h3 className="text-lg font-semibold mb-2">Rapid Planning Report</h3>
-                <p className="text-gray-600 text-sm">
-                  PropCode's AI-powered report is the first automated planning report that analyses the full text of planning documents to find the right answers.
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="mb-4">
-                  <svg className="h-12 w-12 mx-auto text-primary" viewBox="0 0 24 24">
-                    <path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/>
-                    <path fill="currentColor" d="M7 12h2v5H7zm4-3h2v8h-2zm4-3h2v11h-2z"/>
-                  </svg>
-                </div>
-                <h3 className="text-lg font-semibold mb-2">Analyse CDC Options</h3>
-                <p className="text-gray-600 text-sm">
-                  Our instant tool shows whether your project in NSW is eligible for fast CDC approval. With a transparent audit trail, it shows max height and floor area, min lot area, and other building rules.
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="mb-4">
-                  <svg className="h-12 w-12 mx-auto text-primary" viewBox="0 0 24 24">
-                    <path fill="currentColor" d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 18H6V4h12v16z"/>
-                    <path fill="currentColor" d="M8 6h8v2H8zm0 4h8v2H8zm0 4h8v2H8z"/>
-                  </svg>
-                </div>
-                <h3 className="text-lg font-semibold mb-2">PropCode Library</h3>
-                <p className="text-gray-600 text-sm">
-                  Our free regulations viewer makes it easier to find, read, and search planning regulations that are relevant to a property in NSW and VIC. Read all necessary regulations in one beautiful tool.
-                </p>
-              </div>
-            </div>
-          )} */}
+          
         </div>
       </div>
     </div>

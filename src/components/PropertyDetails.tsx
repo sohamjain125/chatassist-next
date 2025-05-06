@@ -158,7 +158,7 @@ export default function PropertyDetails({
   };
 
   return (
-    <div className="space-y-3 mt-12">
+    <div className="space-y-3 ">
       <StickyHeader title="Property Details" >
         <SidebarToggle />
       </StickyHeader>
@@ -181,8 +181,8 @@ export default function PropertyDetails({
           {/* Sticky Address Section */}
 
           {/* Scrollable Map and Details Section */}
-          <div className="h-[calc(100vh-250px)] overflow-y-auto">
-            <div className="space-y-4">
+          <div className="max-h-[75vh] overflow-y-auto">
+            <div className="space-y-4 pb-12">
              
               {/* Information Card */}
               <Card className="p-4">

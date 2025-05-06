@@ -128,7 +128,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
           <StickyHeader {...getHeaderProps()}>
             <SidebarToggle />
           </StickyHeader>
-          <main className="flex-1 pt-14 px-6">
+          <main className="flex-1 pt-14 px-6 pb-24">
             {children}
           </main>
         </div>
