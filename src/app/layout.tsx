@@ -11,6 +11,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import AppLayout from '@/components/layout/AppLayout';
 import { usePathname } from 'next/navigation';
 import { Footer } from '@/components/ui/footer';
+import { LoadingProvider } from '@/contexts/LoadingContext';
 
 const queryClient = new QueryClient();
 
@@ -23,23 +24,25 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className="min-h-screen bg-background font-sans antialiased">
         <QueryClientProvider client={queryClient}>
           <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <div className="flex flex-col min-h-screen">
-              {/* Main Content */}
-              <main className="flex-1">
-                {isAuthPage ? (
-                  children
-                ) : (
-                  <AppLayout>
-                    {children}
-                  </AppLayout>
-                )}
-              </main>
+            <LoadingProvider>
+              <Toaster />
+              <Sonner />
+              <div className="flex flex-col min-h-screen">
+                {/* Main Content */}
+                <main className="flex-1">
+                  {isAuthPage ? (
+                    children
+                  ) : (
+                    <AppLayout>
+                      {children}
+                    </AppLayout>
+                  )}
+                </main>
 
-              {/* Footer */}
-              <Footer />
-            </div>
+                {/* Footer */}
+                <Footer />
+              </div>
+            </LoadingProvider>
           </TooltipProvider>
         </QueryClientProvider>
       </body>
