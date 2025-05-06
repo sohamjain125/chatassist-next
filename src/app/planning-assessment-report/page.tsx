@@ -39,9 +39,9 @@ const PlanningAssessmentReportPage = () => {
   };
 
   return (
-    <div className="flex min-h-[80vh] gap-8 p-8 max-w-7xl mx-auto">
+    <div className="flex flex-col lg:flex-row min-h-[80vh] gap-8 p-8 max-w-7xl mx-auto">
       {/* Left Section: Q&A Cards */}
-      <div className="flex-2 bg-gray-50 rounded-2xl p-8">
+      <div className="lg:flex-[2] bg-gray-50 rounded-2xl p-8 mb-8 lg:mb-0">
         <h2 className="text-4xl text-gray-900 mb-8 border-b-2 border-blue-600 pb-2">
           About this Report
         </h2>
@@ -74,33 +74,10 @@ const PlanningAssessmentReportPage = () => {
       </div>
 
       {/* Right Section: Button */}
-      <div style={{ 
-        flex: 1, 
-        display: 'flex', 
-        flexDirection: 'column', 
-        justifyContent: 'flex-end', 
-        alignItems: 'center', 
-        background: '#ffffff', 
-        borderRadius: '16px', 
-        padding: '2rem',
-        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-        border: '1px solid #eaeaea',
-      }}>
+      <div className="lg:flex-1 flex flex-col justify-end items-center bg-white rounded-2xl p-8 shadow-md border border-gray-100">
         <button
           onClick={handleDownload}
-          style={{
-            width: '100%',
-            padding: '1.25rem',
-            fontSize: '1.1rem',
-            background: '#0070f3',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            marginTop: 'auto',
-            transition: 'background-color 0.2s ease',
-            fontWeight: '600',
-          }}
+          className="w-full py-5 text-lg bg-blue-600 text-white rounded-lg font-semibold mt-auto transition-colors duration-200 hover:bg-blue-700"
         >
           Pay and Go
         </button>

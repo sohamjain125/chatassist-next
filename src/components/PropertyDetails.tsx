@@ -265,8 +265,8 @@ export default function PropertyDetails({
             <h3 className="text-lg font-semibold mb-2">What would you like to do?</h3>
             <Tabs defaultValue="planning" className="w-full">
               <TabsList className="mb-4">
-                <TabsTrigger value="planning">Planning Permit</TabsTrigger>
-                <TabsTrigger value="building">Building Permit</TabsTrigger>
+                <TabsTrigger value="planning">Planning </TabsTrigger>
+                <TabsTrigger value="building">Building </TabsTrigger>
               </TabsList>
               <TabsContent value="planning">
                 <InfoCard
@@ -278,9 +278,10 @@ export default function PropertyDetails({
                   }
                   title="Planning assessment report"
                   description="Our instant tool shows whether your project in NSW is eligible for fast CDC approval. With a transparent audit trail, it shows max height and floor area, min lot area, and other building rules."
-                  tip="Not sure what is this? click here to learn more"
+                  tip={<span className="text-xs text-blue-600 underline cursor-pointer hover:text-blue-800 ml-2 align-middle" onClick={() => router.push('/planning-assessment-report')}>Not sure what is this? click here to learn more</span>}
                   buttonLabel="View Report"
-                  onButtonClick={() => router.push('/planning-assessment-report')}
+                  onButtonClick={undefined}
+                  buttonDisabled={true}
                 />
                 <InfoCard
                   icon={
