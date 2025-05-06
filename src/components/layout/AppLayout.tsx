@@ -23,6 +23,7 @@ import {
 import StickyHeader from './StickyHeader';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBuilding } from '@fortawesome/free-solid-svg-icons';
+import { icon } from '@fortawesome/fontawesome-svg-core';
 
 // Sidebar toggle button component
 const SidebarToggle = () => {
@@ -60,6 +61,8 @@ const AppLayout = ({ children }: AppLayoutProps) => {
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Map },
+    { name: 'Search', href: '/search',  icon: MessageSquare},
+    {name : 'History', href: '/history', icon: History}
   ];
 
   const handleLogout = () => {
