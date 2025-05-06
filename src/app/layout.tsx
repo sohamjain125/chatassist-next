@@ -26,13 +26,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <Toaster />
             <Sonner />
             <div className="flex flex-col min-h-screen">
-              {/* Header */}
-              <header className="w-full border-b bg-background">
-                {/* Your header content will go here */}
-              </header>
-
               {/* Main Content */}
-              <main className="flex-grow pb-20">
+              <main className="flex-1">
                 {isAuthPage ? (
                   children
                 ) : (

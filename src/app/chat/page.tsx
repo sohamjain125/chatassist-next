@@ -94,13 +94,10 @@ export default function Chatbot() {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Property Assistant</h1>
-        <p className="text-muted-foreground mt-2">Get answers to your property questions</p>
-      </div>
+    <div className="space-y-6 ">
+     
       
-      <Card className="border-0 shadow-lg">
+      <Card className="border-0 h shadow-lg mt-2">
         <CardHeader className="pb-0">
           <CardTitle className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
@@ -114,7 +111,7 @@ export default function Chatbot() {
           <Separator className="mt-4" />
         </CardHeader>
         <CardContent className="p-0">
-          <div className="h-[500px] overflow-y-auto p-6">
+          <div className="h-[calc(100vh-20rem)] overflow-y-auto p-6">
             <div className="space-y-6">
               {messages.map((message) => (
                 <div

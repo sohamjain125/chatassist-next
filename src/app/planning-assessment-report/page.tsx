@@ -39,31 +39,25 @@ const PlanningAssessmentReportPage = () => {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '80vh', gap: '2rem', padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
+    <div className="flex min-h-[80vh] gap-8 p-8 max-w-7xl mx-auto">
       {/* Left Section: Q&A Cards */}
-      <div style={{ flex: 2, background: '#f8f9fa', borderRadius: '16px', padding: '2rem' }}>
-        <h2 style={{ 
-          fontSize: '2rem', 
-          color: '#1a1a1a', 
-          marginBottom: '2rem',
-          borderBottom: '2px solid #0070f3',
-          paddingBottom: '0.5rem'
-        }}>
+      <div className="flex-2 bg-gray-50 rounded-2xl p-8">
+        <h2 className="text-4xl text-gray-900 mb-8 border-b-2 border-blue-600 pb-2">
           About this Report
         </h2>
         
-        <div style={cardStyle}>
-          <h4 style={questionStyle}>1) What this report includes?</h4>
-          <p style={answerStyle}>
+        <div className="bg-white rounded-xl p-6 mb-6 shadow-md border border-gray-100">
+          <h4 className="text-xl text-gray-900 font-semibold mb-3">1) What this report includes?</h4>
+          <p className="text-gray-600 text-base leading-relaxed">
             This comprehensive report includes detailed analysis of your planning assessment, 
             covering key metrics, performance indicators, and strategic recommendations. 
             It provides insights into current status and future opportunities.
           </p>
         </div>
 
-        <div style={cardStyle}>
-          <h4 style={questionStyle}>2) What this report can be used for?</h4>
-          <p style={answerStyle}>
+        <div className="bg-white rounded-xl p-6 mb-6 shadow-md border border-gray-100">
+          <h4 className="text-xl text-gray-900 font-semibold mb-3">2) What this report can be used for?</h4>
+          <p className="text-gray-600 text-base leading-relaxed">
             This report serves as a valuable tool for strategic decision-making, 
             helping you identify areas for improvement, track progress, and align 
             your planning with organizational goals. It's ideal for both immediate 
@@ -73,19 +67,7 @@ const PlanningAssessmentReportPage = () => {
 
         <button
           onClick={handleAskAI}
-          style={{
-            width: '100%',
-            padding: '1rem',
-            fontSize: '1.1rem',
-            background: '#4c95bb',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            marginTop: '1rem',
-            transition: 'background-color 0.2s ease',
-            fontWeight: '600',
-          }}
+          className="w-full py-4 text-lg bg-[#4c95bb] text-white border-none rounded-lg cursor-pointer mt-4 transition-colors duration-200 font-semibold hover:bg-[#3d7a9b]"
         >
           Ask AI Assistant
         </button>
