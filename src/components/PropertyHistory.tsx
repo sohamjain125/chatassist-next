@@ -16,6 +16,12 @@ type HistoryItem = {
   postcode: string;
   propertyId: string;
   timestamp: string;
+  buildingOutline: {
+    coordinates: { lat: number; lng: number }[];
+    measurements: { start: { lat: number; lng: number }; end: { lat: number; lng: number }; length: string }[];
+    area: string;
+  };
+  location: { lat: number; lng: number };
   [key: string]: any;
 };
 
@@ -26,8 +32,91 @@ export default function PropertyHistory() {
   useEffect(() => {
     const loadHistory = () => {
       const historyString = localStorage.getItem(HISTORY_KEY);
-      if (!historyString) return [];
-      
+      if (!historyString) {
+        // Provide two dummy items if no history exists
+        return [
+          {
+            address: '123 Main St, Melbourne VIC 3000, Australia',
+            suburb: 'Melbourne',
+            state: 'VIC',
+            postcode: '3000',
+            propertyId: 'DUMMY001',
+            timestamp: new Date().toISOString(),
+            buildingOutline: {
+              coordinates: [
+                { lat: -37.8136, lng: 144.9631 },
+                { lat: -37.8137, lng: 144.9632 },
+                { lat: -37.8138, lng: 144.9631 },
+                { lat: -37.8137, lng: 144.9630 }
+              ],
+              measurements: [
+                {
+                  start: { lat: -37.8136, lng: 144.9631 },
+                  end: { lat: -37.8137, lng: 144.9632 },
+                  length: '50m'
+                },
+                {
+                  start: { lat: -37.8137, lng: 144.9632 },
+                  end: { lat: -37.8138, lng: 144.9631 },
+                  length: '50m'
+                },
+                {
+                  start: { lat: -37.8138, lng: 144.9631 },
+                  end: { lat: -37.8137, lng: 144.9630 },
+                  length: '50m'
+                },
+                {
+                  start: { lat: -37.8137, lng: 144.9630 },
+                  end: { lat: -37.8136, lng: 144.9631 },
+                  length: '50m'
+                }
+              ],
+              area: '2500m²'
+            },
+            location: { lat: -37.8137, lng: 144.9631 }
+          },
+          {
+            address: '456 Queen St, Sydney NSW 2000, Australia',
+            suburb: 'Sydney',
+            state: 'NSW',
+            postcode: '2000',
+            propertyId: 'DUMMY002',
+            timestamp: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+            buildingOutline: {
+              coordinates: [
+                { lat: -33.8688, lng: 151.2093 },
+                { lat: -33.8689, lng: 151.2094 },
+                { lat: -33.8690, lng: 151.2093 },
+                { lat: -33.8689, lng: 151.2092 }
+              ],
+              measurements: [
+                {
+                  start: { lat: -33.8688, lng: 151.2093 },
+                  end: { lat: -33.8689, lng: 151.2094 },
+                  length: '60m'
+                },
+                {
+                  start: { lat: -33.8689, lng: 151.2094 },
+                  end: { lat: -33.8690, lng: 151.2093 },
+                  length: '60m'
+                },
+                {
+                  start: { lat: -33.8690, lng: 151.2093 },
+                  end: { lat: -33.8689, lng: 151.2092 },
+                  length: '60m'
+                },
+                {
+                  start: { lat: -33.8689, lng: 151.2092 },
+                  end: { lat: -33.8688, lng: 151.2093 },
+                  length: '60m'
+                }
+              ],
+              area: '3600m²'
+            },
+            location: { lat: -33.8689, lng: 151.2093 }
+          },
+        ];
+      }
       try {
         const parsedHistory = JSON.parse(historyString);
         return Array.isArray(parsedHistory) ? parsedHistory : [];
@@ -78,34 +167,39 @@ export default function PropertyHistory() {
   }
   
   return (
-    <div className="container mx-auto py-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {history.map((item, index) => (
-          <Card key={index} className="overflow-hidden hover:shadow-md transition-shadow">
-            <CardHeader className="bg-primary/5 pb-2">
-              <CardTitle className="text-lg font-medium">{item.address}</CardTitle>
-              <CardDescription className="flex items-center gap-1">
-                <MapPin className="h-3 w-3 text-primary" />
-                {item.suburb}, {item.state} {item.postcode}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-4">
-              <div className="flex items-center text-sm text-muted-foreground mb-4">
-                <Calendar className="h-3.5 w-3.5 mr-1" />
-                <span>Searched on {formatDate(item.timestamp)}</span>
-              </div>
-              <Separator className="my-3" />
-              <Button 
-                className="w-full mt-2" 
-                onClick={() => handlePropertyClick(item)}
-                variant="secondary"
-              >
-                View Property Details
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
+    <div className="container mx-auto py-8 px-4">
+      <div className="overflow-x-auto rounded-lg shadow">
+        <table className="min-w-full bg-white border border-gray-200">
+          <thead>
+            <tr className="bg-gray-100 text-gray-700 text-left">
+              <th className="py-3 px-4 border-b">Date & Time</th>
+              <th className="py-3 px-4 border-b">Property Details</th>
+              <th className="py-3 px-4 border-b">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {history.map((item, index) => (
+              <tr key={index} className="border-b hover:bg-gray-50">
+                <td className="py-3 px-4 align-top whitespace-nowrap text-sm text-gray-700">{formatDate(item.timestamp)}</td>
+                <td className="py-3 px-4 align-top text-sm">
+                  <div className="font-medium text-gray-900">{item.address}</div>
+                  <div className="text-gray-500">{item.suburb}, {item.state} {item.postcode}</div>
+                  <div className="text-xs text-gray-400 mt-1">ID: {item.propertyId}</div>
+                </td>
+                <td className="py-3 px-4 align-top">
+                  <Button 
+                    className="w-full" 
+                    onClick={() => handlePropertyClick(item)}
+                    variant="secondary"
+                  >
+                    View Details
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
