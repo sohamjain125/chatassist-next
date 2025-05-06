@@ -11,6 +11,8 @@ import Link from 'next/link';
 
 export default function Register() {
   const [isLoading, setIsLoading] = useState(false);
+  const [firstname, setFirstname] = useState('');
+  const [lastname, setLastname] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -23,20 +25,17 @@ export default function Register() {
     setIsLoading(true);
     setError('');
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      setIsLoading(false);
-      return;
-    }
+    
 
     try {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password, firstname, lastname })
       });
       const data = await res.json();
-      if (res.ok && data.token) {
+      console.log(data);
+      if (data.success) {
         // Set cookie instead of localStorage
         document.cookie = `token=${data.token}; path=/`;
         toast({
@@ -79,6 +78,22 @@ export default function Register() {
         <CardContent>
           <form onSubmit={handleRegister} className="space-y-4">
             <div className="space-y-2">
+            <Input
+                type="text"
+                placeholder="Enter your firstname"
+                value={firstname}
+                onChange={(e) => setFirstname(e.target.value)}
+                required
+              />
+              
+               <Input
+                type="text"
+                placeholder="Enter your lastname"
+                value={lastname}
+                onChange={(e) => setLastname(e.target.value)}
+                required
+              />
+                
               <Input
                 type="email"
                 placeholder="Enter your email"
@@ -96,15 +111,7 @@ export default function Register() {
                 required
               />
             </div>
-            <div className="space-y-2">
-              <Input
-                type="password"
-                placeholder="Confirm your password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-              />
-            </div>
+           
             {error && <div className="text-red-500 text-sm">{error}</div>}
             <Button className="w-full" type="submit" disabled={isLoading}>
               {isLoading ? (

@@ -4,16 +4,16 @@ import { registerUser } from '@/lib/auth';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { firstName, lastName, email, password } = body;
+    const { firstname, lastname, email, password } = body;
 
-    if (!firstName || !lastName || !email || !password) {
+    if (!firstname || !lastname || !email || !password) {
       return NextResponse.json(
         { error: 'All fields are required' },
         { status: 400 }
       );
     }
 
-    const result = await registerUser(firstName, lastName, email, password);
+    const result = await registerUser(firstname, lastname, email, password);
     
     if (result.error) {
       return NextResponse.json(
