@@ -108,7 +108,7 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({
             </div>
           ) : (
             <div className="min-w-0 flex-1">
-              <h1 className="text-xl font-semibold truncate">{title || 'AddressHub'}</h1>
+              <h1 className="text-xl font-semibold truncate">{'AddressHub'}</h1>
             </div>
           )}
         </div>
