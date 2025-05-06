@@ -175,7 +175,7 @@ export default function PropertyDetails({
               </div>
             </Card>
           </div>
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-4">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 mt-4">
         {/* Left Section */}
         <div className="lg:col-span-5 flex flex-col gap-4">
           {/* Sticky Address Section */}
@@ -183,19 +183,16 @@ export default function PropertyDetails({
           {/* Scrollable Map and Details Section */}
           <div className="h-[calc(100vh-250px)] overflow-y-auto">
             <div className="space-y-4">
-              {/* Map Card */}
-              <Card className="overflow-hidden">
+             
+              {/* Information Card */}
+              <Card className="p-4">
+                <div className="space-y-6">
                 <div className="h-[250px] w-full">
                   <Map
                     center={location}
                     buildingOutline={buildingOutline}
                   />
                 </div>
-              </Card>
-
-              {/* Information Card */}
-              <Card className="p-4">
-                <div className="space-y-6">
                   {/* Lot Details Section */}
                   <div>
                     <h3 className="text-lg font-semibold mb-3">Lot Details</h3>
@@ -263,6 +260,7 @@ export default function PropertyDetails({
         </div>
         {/* Right Section */}
         <div className="lg:col-span-7 flex flex-col gap-4">
+          
           <Card className="p-6 flex flex-col gap-4">
             <h3 className="text-lg font-semibold mb-2">What would you like to do?</h3>
             <Tabs defaultValue="planning" className="w-full">
