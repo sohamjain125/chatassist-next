@@ -259,7 +259,7 @@ export default function PropertyDetails({
           </div>
         </div>
         {/* Right Section */}
-        <div className="lg:col-span-7 flex flex-col gap-4">
+        <div className="lg:col-span-7 flex flex-col gap-4 max-h-[75vh] overflow-y-auto">
           
           <Card className="p-6 flex flex-col gap-4">
             <h3 className="text-lg font-semibold mb-2">What would you like to do?</h3>
