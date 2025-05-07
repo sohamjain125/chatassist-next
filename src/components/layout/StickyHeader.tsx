@@ -128,7 +128,7 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger>
-              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
+              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:text-white transition-colors">
                 <User className="h-5 w-5" />
                 <span className="sr-only">User menu</span>
               </Button>

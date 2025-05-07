@@ -6,6 +6,12 @@ import { Separator } from "@/components/ui/separator";
 import { ArrowRight, MapPin, Calendar, AlertCircle } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { Alert, AlertDescription } from './ui/alert';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const HISTORY_KEY = 'property_search_history';
 
@@ -187,14 +193,22 @@ export default function PropertyHistory() {
                   <div className="text-xs text-gray-400 mt-1">ID: {item.propertyId}</div>
                 </td>
                 <td className="py-3 px-4 align-top">
-                  <Button 
-                    className="w-full" 
-                    onClick={() => handlePropertyClick(item)}
-                    variant="secondary"
-                  >
-                    View Details
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          className="w-full bg-[#4c95bb] hover:bg-[#4c95bb]/90 text-white" 
+                          onClick={() => handlePropertyClick(item)}
+                        >
+                          View Details
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        View property details and information
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </td>
               </tr>
             ))}

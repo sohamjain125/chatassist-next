@@ -59,7 +59,7 @@ export default function PropertyPage() {
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <StickyHeader title="Property Details" showBackButton />
+        <StickyHeader  showBackButton />
         <div className="container mx-auto px-4 py-8">
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
@@ -78,7 +78,7 @@ export default function PropertyPage() {
   if (!propertyData) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <StickyHeader title="Property Details" showBackButton />
+        <StickyHeader  showBackButton />
         <div className="container mx-auto px-4 py-8">
           <div className="animate-pulse">
             <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
