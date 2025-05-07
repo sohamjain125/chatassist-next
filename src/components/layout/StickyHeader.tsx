@@ -127,10 +127,12 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({
             <Tooltip>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="inline-flex items-center justify-center h-8 w-8 rounded-full hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer">
-                    <User className="h-5 w-5" />
-                    <span className="sr-only">User menu</span>
-                  </Button>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" className="inline-flex items-center justify-center h-8 w-8 rounded-full hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer hover:text-white">
+                      <User className="h-5 w-5" />
+                      <span className="sr-only">User menu</span>
+                    </Button>
+                  </TooltipTrigger>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel className="font-normal">
