@@ -1,63 +1,32 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Search as SearchIcon, AlertCircle, X } from 'lucide-react';
+import { Search as SearchIcon, AlertCircle, X, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import Map from '@/components/Map';
-import AddressDetails from '@/components/AddressDetails';
 import { Card, CardContent } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
-
-interface AddressResult {
-  address_components: Array<{
-    long_name: string;
-    short_name: string;
-    types: string[];
-  }>;
-  formatted_address: string;
-  geometry: {
-    location: {
-      lat: number;
-      lng: number;
-    };
-    location_type: string;
-    viewport: {
-      northeast: { lat: number; lng: number };
-      southwest: { lat: number; lng: number };
-    };
-  };
-  place_id: string;
-  plus_code?: {
-    compound_code: string;
-    global_code: string;
-  };
-  types: string[];
-}
-
-interface SearchResponse {
-  results: AddressResult[];
-  status: string;
-}
-
-interface SearchResult {
-  status: string;
-  results: Array<{
-    formatted_address: string;
-    geometry: {
-      location: { lat: number; lng: number };
-      viewport: {
-        northeast: { lat: number; lng: number };
-        southwest: { lat: number; lng: number };
-      };
-    };
-  }>;
-}
 
 interface PropertySuggestion {
   Address: string;
   Assessment_Number: string;
+}
+
+interface PropertyDetails {
+  Address: string;
+  Assessment_Number: string;
+  Latitude: number;
+  Longitude: number;
+  StreetNumber: string;
+  StreetName: string;
+  Suburb: string;
+  State: string;
+  Postcode: string;
+  AllotmentArea: number;
+  LotNo: string;
+  PlanNo: string;
 }
 
 export default function Search() {
@@ -67,9 +36,9 @@ export default function Search() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedProperty, setSelectedProperty] = useState<PropertySuggestion | null>(null);
-  const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
+  const [selectedProperty, setSelectedProperty] = useState<PropertyDetails | null>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     // Handle clicks outside suggestions
@@ -89,9 +58,9 @@ export default function Search() {
     const value = e.target.value;
     setSearchQuery(value);
     
-    if (value.length >= 2) {
+    if (value.length > 0) {
       try {
-        const response = await fetch(`/api/property?query=${encodeURIComponent(value)}`);
+        const response = await fetch(`/api/property-list?query=${encodeURIComponent(value)}`);
         if (!response.ok) {
           throw new Error('Failed to fetch suggestions');
         }
@@ -108,110 +77,212 @@ export default function Search() {
     }
   };
 
-  const handleSuggestionClick = (suggestion: PropertySuggestion) => {
-    setSelectedProperty(suggestion);
-    setSearchQuery(suggestion.Address);
-    setShowSuggestions(false);
-  };
-
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSearch = async () => {
     if (!searchQuery.trim()) {
       setError('Please enter an address to search');
       return;
     }
 
-    if (!selectedProperty) {
-      setError('Please select an address from the suggestions');
-      return;
-    }
-
     setIsLoading(true);
     setError(null);
-    
+
     try {
-      // Here you can add additional API calls to get more property details
-      // using the selectedProperty.Assessment_Number
-      console.log('Selected property:', selectedProperty);
+      // First get property suggestions
+      const suggestionsResponse = await fetch(`/api/property-list?query=${encodeURIComponent(searchQuery)}`);
+      if (!suggestionsResponse.ok) {
+        throw new Error('Failed to fetch suggestions');
+      }
+      const suggestions = await suggestionsResponse.json();
       
-      // For now, we'll just show the selected property
-      setSearchResult({
-        status: 'OK',
-        results: [{
-          formatted_address: selectedProperty.Address,
-          geometry: {
-            location: { lat: 0, lng: 0 }, // You might want to get actual coordinates
-            viewport: {
-              northeast: { lat: 0, lng: 0 },
-              southwest: { lat: 0, lng: 0 }
-            }
-          }
-        }]
-      });
+      if (suggestions.length === 0) {
+        setError('No properties found for this address');
+        return;
+      }
+
+      // Get details for the first suggestion
+      const propertyResponse = await fetch(`/api/property-details?assessmentNumber=${suggestions[0].Assessment_Number}`);
+      if (!propertyResponse.ok) {
+        throw new Error('Failed to fetch property details');
+      }
+      const propertyDetails = await propertyResponse.json();
+      setSelectedProperty(propertyDetails);
+      setSearchQuery(suggestions[0].Address);
     } catch (error) {
-      console.error('Search failed:', error);
-      setError(error instanceof Error ? error.message : 'Failed to search address');
+      console.error('Error searching property:', error);
+      setError('Failed to search property');
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleSuggestionClick = async (suggestion: PropertySuggestion) => {
+    setSearchQuery(suggestion.Address);
+    setShowSuggestions(false);
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/property-details?assessmentNumber=${suggestion.Assessment_Number}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch property details');
+      }
+      const propertyDetails = await response.json();
+      setSelectedProperty(propertyDetails);
+    } catch (error) {
+      console.error('Error fetching property details:', error);
+      setError('Failed to load property details');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleContinue = () => {
+    if (!selectedProperty) return;
+
+    const propertyData = {
+      address: selectedProperty.Address,
+      assessmentNumber: selectedProperty.Assessment_Number,
+      latitude: selectedProperty.Latitude,
+      longitude: selectedProperty.Longitude,
+      streetNumber: selectedProperty.StreetNumber,
+      streetName: selectedProperty.StreetName,
+      suburb: selectedProperty.Suburb,
+      state: selectedProperty.State,
+      postcode: selectedProperty.Postcode,
+      allotmentArea: selectedProperty.AllotmentArea,
+      lotNo: selectedProperty.LotNo,
+      planNo: selectedProperty.PlanNo,
+      timestamp: new Date().toISOString()
+    };
+
+    const queryParams = new URLSearchParams({
+      data: JSON.stringify(propertyData)
+    });
+    
+    router.push(`/property?${queryParams.toString()}`);
+  };
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <form onSubmit={handleSearch} className="max-w-2xl mx-auto">
-        <div className="relative">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={handleInputChange}
-            placeholder="Enter property address..."
-            className="w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          {showSuggestions && suggestions.length > 0 && (
-            <div
-              ref={suggestionsRef}
-              className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-60 overflow-auto"
-            >
-              {suggestions.map((suggestion, index) => (
-                <div
-                  key={index}
-                  onClick={() => handleSuggestionClick(suggestion)}
-                  className="p-3 hover:bg-gray-100 cursor-pointer"
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-4">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-3xl font-bold mb-4">Find answers for your property</h1>
+          <p className="text-gray-600 mb-4">
+            Adress Hub's technology is taking the property industry forward with instant analysis for critical planning questions. Try it for free by entering an address below.
+          </p>
+
+          <Card className="mb-4">
+            <CardContent className="p-4">
+              <div className="relative">
+                <Input
+                  ref={inputRef}
+                  type="text"
+                  placeholder="Search a property or click one on the map"
+                  value={searchQuery}
+                  onChange={handleInputChange}
+                  className="pr-24 h-12"
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => { 
+                      setSearchQuery(''); 
+                      setSuggestions([]); 
+                      setShowSuggestions(false);
+                      setSelectedProperty(null);
+                    }}
+                    className="absolute right-12 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="absolute right-2 top-1/2 -translate-y-1/2"
+                  onClick={handleSearch}
+                  disabled={isLoading}
                 >
-                  {suggestion.Address}
+                  <SearchIcon className="h-4 w-4" />
+                </Button>
+                {showSuggestions && suggestions.length > 0 && (
+                  <div
+                    ref={suggestionsRef}
+                    className="absolute left-0 right-0 mt-1 bg-white border rounded shadow z-50 max-h-60 overflow-y-auto"
+                  >
+                    {suggestions.map((suggestion, idx) => (
+                      <div
+                        key={idx}
+                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                        onClick={() => handleSuggestionClick(suggestion)}
+                      >
+                        {suggestion.Address}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {error && (
+            <Alert variant="destructive" className="mb-8">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          {selectedProperty && (
+            <div className="space-y-6">
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <div className="h-[400px] mb-8">
+                  <Map
+                    center={{ lat: selectedProperty.Latitude, lng: selectedProperty.Longitude }}
+                    zoom={15}
+                    showSearch={false}
+                    readOnly={true}
+                  />
                 </div>
-              ))}
+
+                <div className="border-t pt-6">
+                  <h3 className="text-lg font-semibold mb-4">Property Details</h3>
+                  <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+                    <div>
+                      <div className="text-sm text-gray-500">Assessment Number</div>
+                      <div className="font-medium">{selectedProperty.Assessment_Number}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-500">Lot Number</div>
+                      <div className="font-medium">{selectedProperty.LotNo}</div>
+                    </div>
+                    <div className="col-span-2">
+                      <div className="text-sm text-gray-500">Address</div>
+                      <div className="font-medium">{selectedProperty.Address}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-500">Plan Number</div>
+                      <div className="font-medium">{selectedProperty.PlanNo}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-500">Area</div>
+                      <div className="font-medium">{selectedProperty.AllotmentArea} m²</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-8">
+                  <Button 
+                    className="w-full"
+                    onClick={handleContinue}
+                  >
+                    Continue with address
+                  </Button>
+                </div>
+              </div>
             </div>
           )}
         </div>
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="mt-4 w-full bg-blue-500 text-white p-4 rounded-lg hover:bg-blue-600 disabled:bg-blue-300"
-        >
-          {isLoading ? 'Searching...' : 'Search'}
-        </button>
-      </form>
-
-      {error && (
-        <div className="mt-4 p-4 bg-red-100 text-red-700 rounded-lg">
-          {error}
-        </div>
-      )}
-
-      {searchResult && (
-        <div className="mt-8">
-          <h2 className="text-xl font-semibold mb-4">Search Results</h2>
-          <div className="bg-white p-4 rounded-lg shadow">
-            <p className="text-lg">{searchResult.results[0].formatted_address}</p>
-            {selectedProperty && (
-              <p className="text-sm text-gray-600 mt-2">
-                Assessment Number: {selectedProperty.Assessment_Number}
-              </p>
-            )}
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 }
