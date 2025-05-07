@@ -100,7 +100,7 @@ export default function PropertyPage() {
 
   return (
     <div className="min-h-screen">
-      <div className="container mx-auto ">
+      <div className="container mx-auto pl-0 pr-0 ">
         <PropertyDetails 
          propertyData={propertyData}
         />

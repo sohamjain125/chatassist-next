@@ -241,6 +241,7 @@ export default function Search() {
                     zoom={15}
                     showSearch={false}
                     readOnly={true}
+                    height="400px"
                   />
                 </div>
 

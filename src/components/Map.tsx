@@ -67,7 +67,7 @@ export default function Map({
   showSearch = false,
   showControls = false,
   className = '',
-  height = '200px',
+  height = '',
   initialAddress = '',
   readOnly = false,
   buildingOutline

@@ -151,7 +151,7 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
                         lng: propertyDetails?.Longitude || 0
                       }}
                       zoom={20}
-                     
+                      height="200px"
                       buildingOutline={propertyDetails?.buildingOutline}
                     />
                   </div>
