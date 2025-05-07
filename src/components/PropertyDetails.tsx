@@ -149,7 +149,7 @@ export default function PropertyDetails({
         variant="ghost" 
         size="icon" 
         onClick={toggleSidebar}
-        className="mr-2"
+        className="mr-2 hover:text-white transition-colors"
       >
         <Menu className="h-5 w-5 hover:text-white transition-colors" />
         <span className="sr-only">Toggle sidebar</span>
