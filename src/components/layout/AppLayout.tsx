@@ -1,6 +1,6 @@
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Building2, Map, MessageSquare, Menu, History } from 'lucide-react';
+import { Building2, Map, MessageSquare, Menu, History, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   SidebarProvider,
@@ -24,6 +24,7 @@ import StickyHeader from './StickyHeader';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBuilding } from '@fortawesome/free-solid-svg-icons';
 import { icon } from '@fortawesome/fontawesome-svg-core';
+import React from 'react';
 
 // Sidebar toggle button component
 const SidebarToggle = () => {
@@ -37,9 +38,9 @@ const SidebarToggle = () => {
             variant="ghost" 
             size="icon" 
             onClick={toggleSidebar}
-            className="mr-2"
+            className="mr-2 hover:text-white transition-colors"
           >
-            <Menu className="h-5 w-5" />
+            <Menu className="h-5 w-5 " />
             <span className="sr-only">Toggle sidebar</span>
           </Button>
         </TooltipTrigger>
@@ -60,34 +61,26 @@ const AppLayout = ({ children }: AppLayoutProps) => {
   const router = useRouter();
 
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: Map },
-    { name: 'Search', href: '/search',  icon: MessageSquare},
-    {name : 'History', href: '/history', icon: History}
+    { 
+      name: 'Dashboard', 
+      href: '/dashboard', 
+      icon: Map
+    },
+    {
+      name: 'Options',
+      href: '#',
+      icon: Menu,
+      subItems: [
+        { name: 'Search', href: '/search', icon: MessageSquare },
+        { name: 'History', href: '/history', icon: History }
+      ]
+    }
   ];
 
-  const handleLogout = () => {
-    document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-    router.push('/login');
-  };
+  const [expandedItem, setExpandedItem] = React.useState<string | null>(null);
 
-  // Get current page properties for header
-  const getHeaderProps = () => {
-    // Don't add property data in AppLayout for property page
-    // The Property component will handle its own header
-    if (pathname === '/property') {
-      return { title: 'Property Details' };
-    }
-    
-    // For other pages, customize the title based on the path
-    const titles: Record<string, string> = {
-      '/dashboard': 'Dashboard',
-      '/search': 'Search Properties',
-      '/chatbot': 'AI Assistant',
-      '/history': 'Property History',
-      '/property': 'Property Details'
-    };
-    
-    return { title: titles[pathname ?? ''] || 'AddressHub' };
+  const toggleSubItems = (itemName: string) => {
+    setExpandedItem(expandedItem === itemName ? null : itemName);
   };
 
   return (
@@ -96,7 +89,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
         <Sidebar className="fixed top-0 left-0 h-screen z-40 w-64">
           <SidebarHeader className="flex h-14 items-center border-b px-4">
             <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
-              {/* <Building2 className="h-6 w-6" /> */}
+            
               <FontAwesomeIcon
                 icon={faBuilding}
                 style={{ color: "#4c95bb", fontSize: "24px" }}
@@ -108,19 +101,50 @@ const AppLayout = ({ children }: AppLayoutProps) => {
             <SidebarMenu>
               {navigation.map((item) => (
                 <SidebarMenuItem key={item.name}>
-                  <div className="flex items-center gap-2 font-semibold">
-                  <SidebarMenuButton
-                    asChild
-                    isActive={pathname === item.href}
-                    tooltip={item.name}
-                  >
-                    <Link href={item.href} className="flex items-center gap-3">
-                      <item.icon className="h-5 w-5" />
-                      <span className='text-lg'>{item.name}</span>
-                    </Link>
-                  </SidebarMenuButton>
+                  <div className="flex flex-col gap-2 font-semibold">
+                    <SidebarMenuButton
+                      asChild={!item.subItems}
+                      isActive={pathname === item.href}
+                      tooltip={item.name}
+                      onClick={item.subItems ? () => toggleSubItems(item.name) : undefined}
+                    >
+                      {item.subItems ? (
+                        <div className="flex items-center justify-between w-full cursor-pointer">
+                          <div className="flex items-center gap-3">
+                            <item.icon className="h-5 w-5" />
+                            <span className='text-lg'>{item.name}</span>
+                          </div>
+                          <ChevronDown 
+                            className={`h-4 w-4 transition-transform duration-200 ${
+                              expandedItem === item.name ? 'rotate-180' : ''
+                            }`}
+                          />
+                        </div>
+                      ) : (
+                        <Link href={item.href} className="flex items-center gap-3">
+                          <item.icon className="h-5 w-5" />
+                          <span className='text-lg'>{item.name}</span>
+                        </Link>
+                      )}
+                    </SidebarMenuButton>
+                    {item.subItems && expandedItem === item.name && (
+                      <div className="ml-6 flex flex-col gap-1">
+                        {item.subItems.map((subItem) => (
+                          <SidebarMenuButton
+                            key={subItem.name}
+                            asChild
+                            isActive={pathname === subItem.href}
+                            tooltip={subItem.name}
+                          >
+                            <Link href={subItem.href} className="flex items-center gap-3">
+                              <subItem.icon className="h-4 w-4" />
+                              <span className='text-base'>{subItem.name}</span>
+                            </Link>
+                          </SidebarMenuButton>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
@@ -128,7 +152,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
          
         </Sidebar>
         <div className="flex-1 flex flex-col min-w-0 transition-[padding-left] duration-300">
-          <StickyHeader {...getHeaderProps()}>
+          <StickyHeader>
             <SidebarToggle />
           </StickyHeader>
           <main className="flex-1 pt-14 px-6 pb-24">

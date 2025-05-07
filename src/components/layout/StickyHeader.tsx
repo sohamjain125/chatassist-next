@@ -13,6 +13,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface StickyHeaderProps {
   title?: string;
@@ -108,21 +114,30 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({
             </div>
           ) : (
             <div className="min-w-0 flex-1">
-              <h1 className="text-xl font-semibold truncate">{'AddressHub'}</h1>
+              <h1 className="text-xl font-semibold truncate">{title || 'Demo City Council'}</h1>
             </div>
           )}
         </div>
 
         <div className="flex items-center gap-2 shrink-0 ml-4">
           <span className="text-sm text-gray-600 hidden md:block">
-            Welcome, {userInfo.firstname} {userInfo.lastname}
+                {userInfo.firstname} {userInfo.lastname}
           </span>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
               <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
                 <User className="h-5 w-5" />
                 <span className="sr-only">User menu</span>
               </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                Profile
+              </TooltipContent>
+            </Tooltip>
+            </TooltipProvider>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel className="font-normal">

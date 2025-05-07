@@ -197,7 +197,7 @@ export default function Dashboard() {
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className="mt-2" 
+                    className="mt-2 hover:text-white transition-colors" 
                     onClick={() => router.push('/search')}
                   >
                     Search Properties

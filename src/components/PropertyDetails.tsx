@@ -151,7 +151,7 @@ export default function PropertyDetails({
         onClick={toggleSidebar}
         className="mr-2"
       >
-        <Menu className="h-5 w-5" />
+        <Menu className="h-5 w-5 hover:text-white transition-colors" />
         <span className="sr-only">Toggle sidebar</span>
       </Button>
     );
@@ -159,7 +159,7 @@ export default function PropertyDetails({
 
   return (
     <div className="space-y-3 ">
-      <StickyHeader title="Property Details" >
+      <StickyHeader  >
         <SidebarToggle />
       </StickyHeader>
           <div className="top-[72px] z-10 bg-background">
