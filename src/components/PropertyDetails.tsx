@@ -162,19 +162,19 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
                     <dl className="space-y-2">
                       <div className="flex justify-between items-center p-2 rounded bg-white border text-sm">
                         <dt className="text-gray-600">Title ID</dt>
-                        <dd className="font-medium">{propertyData.PlanNo}</dd>
+                        <dd className="font-medium text-xs">{propertyData.PlanNo}</dd>
                       </div>
                       <div className="flex justify-between items-center p-2 rounded bg-white border text-sm">
                         <dt className="text-gray-600">Lot Area</dt>
-                        <dd className="font-medium">{propertyData.AllotmentArea}</dd>
+                        <dd className="font-medium text-xs">{propertyData.AllotmentArea}</dd>
                       </div>
                       <div className="flex justify-between items-center p-2 rounded bg-white border text-sm">
                         <dt className="text-gray-600">LGA</dt>
-                        <dd className="font-medium">{zones[0].LGA}</dd>
+                        <dd className="font-medium text-xs">{zones[0].LGA}</dd>
                       </div>
                       <div className="flex justify-between items-center p-2 rounded bg-white border text-sm">
                         <dt className="text-gray-600">Is multi-lot?</dt>
-                        <dd className="font-medium">
+                        <dd className="font-medium text-xs">
                           <Badge variant={propertyData.LotType === 'Yes' ? 'default' : 'secondary'}>
                             {propertyData.LotType}
                           </Badge>
@@ -182,7 +182,7 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
                       </div>
                       <div className="flex justify-between items-center p-2 rounded bg-white border text-sm">
                         <dt className="text-gray-600">Property ID</dt>
-                        <dd className="font-medium">{propertyData.Property_ID}</dd>
+                        <dd className="font-medium text-xs">{propertyData.Property_ID}</dd>
                       </div>
                     </dl>
                   </div>
@@ -194,7 +194,7 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
                       {zones.map((zone, index) => (
                         <div key={index} className="flex justify-between items-center p-2 rounded bg-white border text-sm">
                           <dt className="text-gray-600">{zone.ZoneCode}</dt>
-                          <dd className="font-medium">{zone.ZoneDescription}</dd>
+                          <dd className="font-medium text-xs">{zone.ZoneDescription}</dd>
                         </div>
                       ))}
                     </dl>
@@ -207,7 +207,7 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
                       {overlays.map((overlay, index) => (
                         <div key={index} className="flex justify-between items-center p-2 rounded bg-white border text-sm">
                           <dt className="text-gray-600">{overlay.OverlayCode}</dt>
-                          <dd className="font-medium">{overlay.OverlayDescription}</dd>
+                          <dd className="font-medium text-xs">{overlay.OverlayDescription}</dd>
                         </div>
                       ))}
                     </dl>
