@@ -1,4 +1,3 @@
-
 import { useRef, useState, useEffect } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -80,10 +79,12 @@ export default function MapComponent({ address, markers = [] }: MapComponentProp
       const popup = new mapboxgl.Popup({ offset: 25 })
         .setHTML(marker.description || 'Location');
       
-      new mapboxgl.Marker(el)
-        .setLngLat([marker.lng, marker.lat])
-        .setPopup(popup)
-        .addTo(map.current);
+      if (map.current) {
+        new mapboxgl.Marker(el)
+          .setLngLat([marker.lng, marker.lat])
+          .setPopup(popup)
+          .addTo(map.current);
+      }
     });
     
     // Center map on first marker
