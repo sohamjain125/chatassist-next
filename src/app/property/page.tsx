@@ -6,32 +6,41 @@ import StickyHeader from '@/components/layout/StickyHeader';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
 import PropertyDetails from '@/components/PropertyDetails';
+import { PropertyData } from '@/interface/property.interface';
 
-interface PropertyData {
-  address: string;
-  suburb: string;
-  state: string;
-  postcode: string;
-  titleId: string;
-  lotArea: string;
-  lga: string;
-  isMultiLot: string;
-  propertyId: string;
-  location: {
-    lat: number;
-    lng: number;
-  };
-  buildingOutline: any;
-  timestamp: string;
-}
 
 export default function PropertyPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [propertyData, setPropertyData] = useState<PropertyData | null>(null);
+  // const [propertyData, setPropertyData] = useState<PropertyData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [propertyData, setPropertyData] = useState<PropertyData | null>(null);
+  const [loading, setLoading] = useState(true);
+  useEffect(()=>{
+      const fetchData = async () => {
+       setLoading(true);
+        setError(null);
+
+        // Get assessment number from URL data
+        const data = searchParams?.get('data');
+        if (!data) {
+          throw new Error('No property data available');
+        }
+
+        const parsedData = JSON.parse(data) as { assessmentNumber: string };
+        const assessmentNumber = parsedData.assessmentNumber;
+        const propertyResponse = await fetch(`/api/property-details?assessmentNumber=${assessmentNumber}`);
+        const propertyData = await propertyResponse.json();
+        setPropertyData(propertyData);
+
+        if (!assessmentNumber) {
+          throw new Error('No assessment number available');
+        }
+      }
+      fetchData();
+  }, [searchParams]);
+
 
   useEffect(() => {
     if (!searchParams) {
@@ -93,7 +102,7 @@ export default function PropertyPage() {
     <div className="min-h-screen">
       <div className="container mx-auto ">
         <PropertyDetails 
-          propertyData={propertyData} 
+         propertyData={propertyData}
         />
       </div>
     </div>

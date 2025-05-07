@@ -1,95 +1,104 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { MapPin, MessageSquare, Menu } from 'lucide-react';
+import { MapPin, MessageSquare, Menu, Loader2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import Map from '@/components/Map';
 import { Button } from '@/components/ui/button';
-import { propertyApi, PropertyDetails as PropertyDetailsType } from '@/services/api';
-import { Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import StickyHeader from './layout/StickyHeader';
 import { useSidebar } from './ui/sidebar';
 import InfoCard from '@/components/ui/InfoCard';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Overlay, PropertyData, Zone } from '@/interface/property.interface';
+
+
 
 
 interface PropertyDetailsProps {
-  propertyId?: string;
-  address?: string;
-  geometry?: {
-    rings: number[][][];
-    spatialReference: {
-      wkid: number;
-    };
-  };
-  propertyData?: {
-    address: string;
-    suburb: string;
-    state: string;
-    postcode: string;
-    titleId: string;
-    lotArea: string;
-    lga: string;
-    isMultiLot: string;
-    propertyId: string;
-    location: {
-      lat: number;
-      lng: number;
-    };
-    buildingOutline: {
-      coordinates: Array<{lat: number; lng: number}>;
-      measurements: Array<{
-        start: {lat: number; lng: number};
-        end: {lat: number; lng: number};
-        length: string;
-      }>;
-      area: string;
-    };
-  };
+  propertyData: PropertyData;
 }
 
-export default function PropertyDetails({ 
-  propertyId = 'PS826416', 
-  address, 
-  geometry,
-  propertyData 
-}: PropertyDetailsProps) {
-  const [propertyDetails, setPropertyDetails] = useState<PropertyDetailsType | null>(null);
+export default function PropertyDetails({ propertyData }: PropertyDetailsProps) {
+  const [zones, setZones] = useState<Zone[]>([]);
+  const [overlays, setOverlays] = useState<Overlay[]>([]);
   const [loading, setLoading] = useState(true);
+  const [propertyDetails, setPropertyDetails] = useState<PropertyData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, []);
-
-  useEffect(() => {
-    if (propertyData) {
-      setLoading(false);
-      return;
-    }
-    const fetchPropertyDetails = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
         setError(null);
-        if (address && geometry) {
-          const details = await propertyApi.getPropertyDetails(address, geometry);
-          setPropertyDetails(details);
+
+        // Get assessment number from URL data
+        const data = searchParams?.get('data');
+        if (!data) {
+          throw new Error('No property data available');
         }
+
+        const parsedData = JSON.parse(data) as { assessmentNumber: string };
+        const assessmentNumber = parsedData.assessmentNumber;
+        const propertyResponse = await fetch(`/api/property-details?assessmentNumber=${assessmentNumber}`);
+        const propertyData = await propertyResponse.json();
+        setPropertyDetails(propertyData);
+
+        if (!assessmentNumber) {
+          throw new Error('No assessment number available');
+        }
+
+        // Fetch zones
+        const zonesResponse = await fetch(`/api/zone?assessmentNumber=${assessmentNumber}`);
+        if (!zonesResponse.ok) throw new Error('Failed to fetch zones');
+        const zonesData = await zonesResponse.json();
+        setZones(zonesData);
+
+        // Fetch overlays
+        const overlaysResponse = await fetch(`/api/overlay?assessmentNumber=${assessmentNumber}`);
+        if (!overlaysResponse.ok) throw new Error('Failed to fetch overlays');
+        const overlaysData = await overlaysResponse.json();
+        setOverlays(overlaysData);
+
       } catch (err) {
+        console.error('Error fetching property details:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch property details');
       } finally {
         setLoading(false);
       }
     };
-    fetchPropertyDetails();
-  }, [address, geometry, propertyData]);
+
+    fetchData();
+  }, [searchParams]);
+
+  const SidebarToggle = () => {
+    const { toggleSidebar, state } = useSidebar();
+    
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={toggleSidebar}
+              className="mr-2 hover:text-white transition-colors"
+            >
+              <Menu className="h-5 w-5" />
+              <span className="sr-only">Toggle sidebar</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            {state === 'expanded' ? 'Close sidebar' : 'Open sidebar'}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  };
 
   if (loading) {
     return (
@@ -110,138 +119,84 @@ export default function PropertyDetails({
     );
   }
 
-  const displayData = propertyData || propertyDetails;
-  if (!displayData) {
-    return (
-      <div className="flex items-center justify-center min-h-[200px]">
-        <p>No property data available</p>
-      </div>
-    );
-  }
-
-  const location = propertyData ? 
-    propertyData.location : 
-    { lat: geometry!.rings[0][0][1], lng: geometry!.rings[0][0][0] };
-
-  const buildingOutline = propertyData ? 
-    propertyData.buildingOutline :
-    {
-      coordinates: geometry!.rings[0].map(([lng, lat]) => ({ lat, lng })),
-      measurements: geometry!.rings[0].map((coords, i, arr) => {
-        const nextCoords = arr[(i + 1) % arr.length];
-        return {
-          start: { lat: coords[1], lng: coords[0] },
-          end: { lat: nextCoords[1], lng: nextCoords[0] },
-          length: "calculated"
-        };
-      }),
-      area: `${propertyDetails?.area}m²`
-    };
-
-  const displayAddress = propertyData?.address || displayData.address || "";
-  const displaySuburb = propertyData?.suburb || "";
-  const displayState = propertyData?.state || "";
-  const displayPostcode = propertyData?.postcode || "";
-
-  const SidebarToggle = () => {
-    const { toggleSidebar, state } = useSidebar();
-    
-    return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={toggleSidebar}
-              className="mr-2 hover:text-white transition-colors"
-            >
-              <Menu className="h-5 w-5 " />
-              <span className="sr-only">Toggle sidebar</span>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            {state === 'expanded' ? 'Close sidebar' : 'Open sidebar'}
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    );
-  };
   return (
-    <div className="space-y-3 ">
-      <StickyHeader  >
+    <div className="space-y-3">
+      <StickyHeader>
         <SidebarToggle />
       </StickyHeader>
-          <div className="top-[72px] z-10 bg-background">
-            <Card className="p-4">
-              <div className="flex items-start gap-2">
-                <MapPin className="h-5 w-5 text-gray-500 mt-1" />
-                <div>
-                  <h2 className="text-lg font-semibold">{displayAddress}</h2>
-                  <p className="text-sm text-gray-600">
-                    {displaySuburb}, {displayState} {displayPostcode}
-                  </p>
-                </div>
-              </div>
-            </Card>
+      <div className="top-[72px] z-10 bg-background">
+        <Card className="p-4">
+          <div className="flex items-start gap-2">
+            <MapPin className="h-5 w-5 text-gray-500 mt-1" />
+            <div>
+              <h2 className="text-lg font-semibold">{propertyData.Address}</h2>
+              <p className="text-sm text-gray-600">
+                {propertyData.Suburb}, {propertyData.State} {propertyData.Postcode}
+              </p>
+            </div>
           </div>
+        </Card>
+      </div>
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 mt-4">
         {/* Left Section */}
         <div className="lg:col-span-5 flex flex-col gap-4">
-          {/* Sticky Address Section */}
-
-          {/* Scrollable Map and Details Section */}
           <div className="max-h-[80vh] overflow-y-auto">
             <div className="space-y-4 pb-12">
-             
-              {/* Information Card */}
               <Card className="p-4">
                 <div className="space-y-6">
-                <div className="h-[250px] w-full">
+                  <div className="h-[250px] ">
                   <Map
-                    center={location}
-                    buildingOutline={buildingOutline}
-                  />
-                </div>
+                      center={{
+                        lat: propertyDetails?.Latitude || 0,
+                        lng: propertyDetails?.Longitude || 0
+                      }}
+                      zoom={20}
+                     
+                      buildingOutline={propertyDetails?.buildingOutline}
+                    />
+                  </div>
+
                   {/* Lot Details Section */}
                   <div>
                     <h3 className="text-lg font-semibold mb-3">Lot Details</h3>
                     <dl className="space-y-2">
                       <div className="flex justify-between items-center p-2 rounded bg-white border text-sm">
                         <dt className="text-gray-600">Title ID</dt>
-                        <dd className="font-medium">{propertyData?.titleId}</dd>
+                        <dd className="font-medium">{propertyData.PlanNo}</dd>
                       </div>
                       <div className="flex justify-between items-center p-2 rounded bg-white border text-sm">
                         <dt className="text-gray-600">Lot Area</dt>
-                        <dd className="font-medium">{propertyData?.lotArea}</dd>
+                        <dd className="font-medium">{propertyData.AllotmentArea}</dd>
                       </div>
                       <div className="flex justify-between items-center p-2 rounded bg-white border text-sm">
                         <dt className="text-gray-600">LGA</dt>
-                        <dd className="font-medium">{propertyData?.lga}</dd>
+                        <dd className="font-medium">{zones[0].LGA}</dd>
                       </div>
                       <div className="flex justify-between items-center p-2 rounded bg-white border text-sm">
                         <dt className="text-gray-600">Is multi-lot?</dt>
                         <dd className="font-medium">
-                          <Badge variant={propertyData?.isMultiLot === 'Yes' ? 'default' : 'secondary'}>
-                            {propertyData?.isMultiLot}
+                          <Badge variant={propertyData.LotType === 'Yes' ? 'default' : 'secondary'}>
+                            {propertyData.LotType}
                           </Badge>
                         </dd>
                       </div>
                       <div className="flex justify-between items-center p-2 rounded bg-white border text-sm">
                         <dt className="text-gray-600">Property ID</dt>
-                        <dd className="font-medium">{propertyData?.propertyId}</dd>
+                        <dd className="font-medium">{propertyData.Property_ID}</dd>
                       </div>
                     </dl>
                   </div>
 
                   {/* Zone Section */}
                   <div>
-                    <h3 className="text-lg font-semibold mb-3">Zone</h3>
+                    <h3 className="text-lg font-semibold mb-3">Zones</h3>
                     <dl className="space-y-2">
-                      <div className="flex justify-between items-center p-2 rounded bg-white border text-sm">
-                        <dt className="text-gray-600">CCZ1</dt>
-                        <dd className="font-medium">Capital City Zone</dd>
-                      </div>
+                      {zones.map((zone, index) => (
+                        <div key={index} className="flex justify-between items-center p-2 rounded bg-white border text-sm">
+                          <dt className="text-gray-600">{zone.ZoneCode}</dt>
+                          <dd className="font-medium">{zone.ZoneDescription}</dd>
+                        </div>
+                      ))}
                     </dl>
                   </div>
 
@@ -249,18 +204,12 @@ export default function PropertyDetails({
                   <div>
                     <h3 className="text-lg font-semibold mb-3">Overlays</h3>
                     <dl className="space-y-2">
-                      <div className="flex justify-between items-center p-2 rounded bg-white border text-sm">
-                        <dt className="text-gray-600">DDO1</dt>
-                        <dd className="font-medium">Design and Development Overlay</dd>
-                      </div>
-                      <div className="flex justify-between items-center p-2 rounded bg-white border text-sm">
-                        <dt className="text-gray-600">HO1</dt>
-                        <dd className="font-medium">Heritage Overlay</dd>
-                      </div>
-                      <div className="flex justify-between items-center p-2 rounded bg-white border text-sm">
-                        <dt className="text-gray-600">VPO1</dt>
-                        <dd className="font-medium">Vegetation Protection Overlay</dd>
-                      </div>
+                      {overlays.map((overlay, index) => (
+                        <div key={index} className="flex justify-between items-center p-2 rounded bg-white border text-sm">
+                          <dt className="text-gray-600">{overlay.OverlayCode}</dt>
+                          <dd className="font-medium">{overlay.OverlayDescription}</dd>
+                        </div>
+                      ))}
                     </dl>
                   </div>
                 </div>
@@ -268,15 +217,15 @@ export default function PropertyDetails({
             </div>
           </div>
         </div>
+
         {/* Right Section */}
         <div className="lg:col-span-7 flex flex-col gap-4 max-h-[80vh] overflow-y-auto">
-          
           <Card className="p-6 flex flex-col gap-4">
             <h3 className="text-lg font-semibold mb-2">What would you like to do?</h3>
             <Tabs defaultValue="planning" className="w-full">
               <TabsList className="mb-4">
-                <TabsTrigger value="planning">Planning </TabsTrigger>
-                <TabsTrigger value="building">Building </TabsTrigger>
+                <TabsTrigger value="planning">Planning</TabsTrigger>
+                <TabsTrigger value="building">Building</TabsTrigger>
               </TabsList>
               <TabsContent value="planning">
                 <InfoCard
@@ -304,7 +253,7 @@ export default function PropertyDetails({
                   title="Ai chat"
                   description="Ai chat is a tool that allows you to chat with the ai to get information about the property."
                   buttonLabel="Ask AI"
-                  onButtonClick={() => router.push(`/chat?summary=${encodeURIComponent(displayAddress)}`)}
+                  onButtonClick={() => router.push(`/chat?summary=${encodeURIComponent(propertyData.Address)}`)}
                 />
               </TabsContent>
               <TabsContent value="building">

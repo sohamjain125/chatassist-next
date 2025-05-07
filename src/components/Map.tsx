@@ -64,10 +64,10 @@ export default function Map({
   zoom = 13,
   onLocationSelect,
   onAddressSelect,
-  showSearch = true,
-  showControls = true,
+  showSearch = false,
+  showControls = false,
   className = '',
-  height = '400px',
+  height = '200px',
   initialAddress = '',
   readOnly = false,
   buildingOutline
@@ -200,141 +200,94 @@ export default function Map({
               fillOpacity: 0.15,
               map: mapInstance
             });
+
+            // Add measurements
+            buildingOutline.measurements.forEach(measurement => {
+              const line = new google.maps.Polyline({
+                path: [measurement.start, measurement.end],
+                strokeColor: "#FF0000",
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                map: mapInstance
+              });
+
+              // Add length label
+              const midPoint = {
+                lat: (measurement.start.lat + measurement.end.lat) / 2,
+                lng: (measurement.start.lng + measurement.end.lng) / 2
+              };
+
+              const lengthInfoWindow = new google.maps.InfoWindow({
+                content: measurement.length,
+                position: midPoint
+              });
+              lengthInfoWindow.open(mapInstance);
+            });
+
+            // Add area label
+            const bounds = new google.maps.LatLngBounds();
+            buildingOutline.coordinates.forEach(coord => {
+              bounds.extend(coord);
+            });
+
+            const center = bounds.getCenter();
+            const areaInfoWindow = new google.maps.InfoWindow({
+              content: `Area: ${buildingOutline.area}`,
+              position: center
+            });
+            areaInfoWindow.open(mapInstance);
           }
         }
-      } catch (error) {
-        console.error('Error initializing map:', error);
+
+        setIsLoading(false);
+      } catch (err) {
+        console.error('Error initializing map:', err);
         setError('Failed to load map');
-        toast({
-          title: "Error",
-          description: "Failed to load map. Please try again.",
-          variant: "destructive"
-        });
-      } finally {
         setIsLoading(false);
       }
     };
 
     initMap();
-  }, [center, zoom, showSearch, showControls, readOnly, onLocationSelect, onAddressSelect, toast, buildingOutline]);
 
-  // Update marker position when center changes
-  useEffect(() => {
-    if (map && marker && center) {
-      marker.setPosition(center);
-      map.setCenter(center);
-    }
-  }, [map, marker, center]);
-
-  // Handle map click
-  useEffect(() => {
-    if (map && !readOnly) {
-      const clickListener = map.addListener('click', (e: google.maps.MapMouseEvent) => {
-        if (e.latLng) {
-          const location = {
-            lat: e.latLng.lat(),
-            lng: e.latLng.lng()
-          };
-
-          if (marker) {
-            marker.setPosition(location);
-          } else {
-            const newMarker = new google.maps.Marker({
-              position: location,
-              map,
-              draggable: !readOnly
-            });
-            setMarker(newMarker);
-          }
-
-          if (onLocationSelect) {
-            onLocationSelect(location);
-          }
-
-          // Get address for the clicked location
-          if (geocoder.current && onAddressSelect) {
-            geocoder.current.geocode({ location }, (results, status) => {
-              if (status === 'OK' && results && results[0]) {
-                onAddressSelect(results[0].formatted_address);
-                setSearchQuery(results[0].formatted_address);
-              }
-            });
-          }
-        }
-      });
-
-      return () => {
-        google.maps.event.removeListener(clickListener);
-      };
-    }
-  }, [map, marker, onLocationSelect, onAddressSelect, readOnly]);
+    // Cleanup function
+    return () => {
+      if (marker) {
+        marker.setMap(null);
+      }
+      if (searchBox) {
+        // Remove search box listeners
+        google.maps.event.clearInstanceListeners(searchBox);
+      }
+    };
+  }, [center, zoom, showControls, readOnly, showSearch, buildingOutline, onLocationSelect, onAddressSelect]);
 
   // Handle search input changes
-  const handleSearchChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setSearchQuery(value);
-    setShowSuggestions(true);
+  useEffect(() => {
+    if (!autocompleteService.current || !searchQuery) {
+      setSuggestions([]);
+      return;
+    }
 
-    if (value.length >= 2 && autocompleteService.current) {
+    const fetchSuggestions = async () => {
       try {
-        const response = await autocompleteService.current.getPlacePredictions({
-          input: value,
-          types: ['address'],
-          componentRestrictions: { country: 'au' }
+        const response = await autocompleteService.current?.getPlacePredictions({
+          input: searchQuery,
+          componentRestrictions: { country: 'au' },
+          types: ['address']
         });
 
-        if (response.predictions) {
+        if (response && response.predictions) {
           setSuggestions(response.predictions);
+          setShowSuggestions(true);
         }
       } catch (error) {
         console.error('Error fetching suggestions:', error);
-        setSuggestions([]);
       }
-    } else {
-      setSuggestions([]);
-    }
-  }, []);
+    };
 
-  // Handle suggestion click
-  const handleSuggestionClick = useCallback((prediction: google.maps.places.AutocompletePrediction) => {
-    if (placesService.current && map) {
-      placesService.current.getDetails(
-        { placeId: prediction.place_id, fields: ['geometry', 'formatted_address'] },
-        (place, status) => {
-          if (status === 'OK' && place && place.geometry && place.geometry.location) {
-            const location = {
-              lat: place.geometry.location.lat(),
-              lng: place.geometry.location.lng()
-            };
-
-            map.setCenter(location);
-            map.setZoom(15);
-
-            if (marker) {
-              marker.setPosition(location);
-            } else {
-              const newMarker = new google.maps.Marker({
-                position: location,
-                map,
-                draggable: !readOnly
-              });
-              setMarker(newMarker);
-            }
-
-            if (onLocationSelect) {
-              onLocationSelect(location);
-            }
-
-            if (onAddressSelect && place.formatted_address) {
-              onAddressSelect(place.formatted_address);
-              setSearchQuery(place.formatted_address);
-            }
-          }
-        }
-      );
-    }
-    setShowSuggestions(false);
-  }, [map, marker, onLocationSelect, onAddressSelect, readOnly]);
+    const debounceTimer = setTimeout(fetchSuggestions, 300);
+    return () => clearTimeout(debounceTimer);
+  }, [searchQuery]);
 
   // Handle click outside suggestions
   useEffect(() => {
@@ -345,9 +298,7 @@ export default function Map({
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   if (error) {
@@ -370,7 +321,10 @@ export default function Map({
               type="text"
               placeholder="Search for a location"
               value={searchQuery}
-              onChange={handleSearchChange}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setShowSuggestions(true);
+              }}
               className="pr-24"
             />
             {searchQuery && (
@@ -401,7 +355,10 @@ export default function Map({
                   <div
                     key={suggestion.place_id}
                     className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
-                    onClick={() => handleSuggestionClick(suggestion)}
+                    onClick={() => {
+                      setSearchQuery(suggestion.description);
+                      setShowSuggestions(false);
+                    }}
                   >
                     {suggestion.description}
                   </div>

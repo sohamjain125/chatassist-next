@@ -33,11 +33,19 @@ async function getAuthToken() {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to get authentication token');
+      const errorText = await response.text();
+      console.error('Auth response error:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText
+      });
+      throw new Error(`Failed to get authentication token: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
     authToken = data.token;
+    // Set token expiry to 1 hour from now
+    tokenExpiry = Date.now() + 3600000;
     return authToken;
   } catch (error) {
     console.error('Error getting auth token:', error);
@@ -63,27 +71,47 @@ export async function GET(request: Request) {
       throw new Error('Failed to get authentication token');
     }
 
-    if (!BASE_URL) {
-      throw new Error('API base URL is not configured');
-    }
-
-    const response = await fetch(`${BASE_URL}/api/Overlay/${assessmentNumber}`, {
+    console.log('Fetching overlays for assessment number:', assessmentNumber);
+    const response = await fetch(`${BASE_URL}/Overlay/${assessmentNumber}`, {
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': token
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
       },
     });
 
     if (!response.ok) {
-      throw new Error(`API responded with status: ${response.status}`);
+      const errorText = await response.text();
+      console.error('Overlay API response error:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText,
+        url: `${BASE_URL}/Overlay/${assessmentNumber}`
+      });
+      throw new Error(`API responded with status: ${response.status} - ${response.statusText}`);
     }
 
     const overlays: Overlay[] = await response.json();
+    
+    // Validate response format
+    if (!Array.isArray(overlays)) {
+      console.error('Invalid response format:', overlays);
+      throw new Error('Invalid response format: expected an array of overlays');
+    }
+
+    // Log successful response
+    console.log('Successfully fetched overlays:', {
+      count: overlays.length,
+      assessmentNumber
+    });
+
     return NextResponse.json(overlays);
   } catch (error) {
     console.error('Error fetching overlay information:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch overlay information' },
+      { 
+        error: 'Failed to fetch overlay information',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }
