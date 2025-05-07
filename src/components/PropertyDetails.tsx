@@ -191,7 +191,7 @@ export default function PropertyDetails({
           {/* Sticky Address Section */}
 
           {/* Scrollable Map and Details Section */}
-          <div className="max-h-[75vh] overflow-y-auto">
+          <div className="max-h-[80vh] overflow-y-auto">
             <div className="space-y-4 pb-12">
              
               {/* Information Card */}
@@ -269,7 +269,7 @@ export default function PropertyDetails({
           </div>
         </div>
         {/* Right Section */}
-        <div className="lg:col-span-7 flex flex-col gap-4 max-h-[75vh] overflow-y-auto">
+        <div className="lg:col-span-7 flex flex-col gap-4 max-h-[80vh] overflow-y-auto">
           
           <Card className="p-6 flex flex-col gap-4">
             <h3 className="text-lg font-semibold mb-2">What would you like to do?</h3>
