@@ -40,40 +40,18 @@ export default function PropertyPage() {
       return;
     }
 
-    const address = searchParams.get('address');
-    if (!address) {
-      console.log('No property address provided');
-      setError('No property address provided');
+    const data = searchParams.get('data');
+    if (!data) {
+      console.log('No property data provided');
+      setError('No property data provided');
       return;
     }
 
     try {
-      const PROPERTY_DATA_KEY = 'current_property_data';
-      const storedData = localStorage.getItem(PROPERTY_DATA_KEY);
-      console.log('Stored data:', storedData);
-      
-      if (storedData) {
-        const parsedData = JSON.parse(storedData);
-        console.log('Parsed data:', parsedData);
-        console.log('Expected address:', decodeURIComponent(address));
-        console.log('Actual address:', parsedData.address);
-        
-        if (parsedData.address === decodeURIComponent(address)) {
-          setPropertyData(parsedData);
-          // Only clear the data after we've successfully set it in state
-          setTimeout(() => {
-            localStorage.removeItem(PROPERTY_DATA_KEY);
-          }, 1000);
-        } else {
-          console.log('Address mismatch');
-          setError('Property data not found');
-        }
-      } else {
-        console.log('No stored data found');
-        setError('Property data not found');
-      }
+      const parsedData = JSON.parse(data);
+      setPropertyData(parsedData);
     } catch (err) {
-      console.error('Error loading property data:', err);
+      console.error('Error parsing property data:', err);
       setError('Error loading property data');
     }
   }, [searchParams]);

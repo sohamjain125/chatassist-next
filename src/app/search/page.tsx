@@ -10,8 +10,6 @@ import AddressDetails from '@/components/AddressDetails';
 import { Card, CardContent } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
 
-const SEARCH_STATE_KEY = 'property_search_state';
-
 interface AddressResult {
   address_components: Array<{
     long_name: string;
@@ -55,33 +53,6 @@ export default function Search() {
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteService = useRef<any>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
-
-  // Load saved search state on component mount
-  useEffect(() => {
-    try {
-      const savedState = localStorage.getItem(SEARCH_STATE_KEY);
-      if (savedState) {
-        const parsedState = JSON.parse(savedState);
-        setSearchQuery(parsedState.searchQuery || '');
-        setSearchResult(parsedState.searchResult || null);
-        setBuildingData(parsedState.buildingData || null);
-      }
-    } catch (error) {
-      console.error('Error loading saved search state:', error);
-    }
-  }, []);
-
-  // Save search state when it changes
-  useEffect(() => {
-    if (searchResult || buildingData) {
-      const stateToSave = {
-        searchQuery,
-        searchResult,
-        buildingData
-      };
-      localStorage.setItem(SEARCH_STATE_KEY, JSON.stringify(stateToSave));
-    }
-  }, [searchQuery, searchResult, buildingData]);
 
   // Initialize Google Maps AutocompleteService
   useEffect(() => {
@@ -220,21 +191,12 @@ export default function Search() {
         timestamp: new Date().toISOString()
       };
 
-      console.log('Property data to save:', propertyData);
-
-      // Save property data to localStorage temporarily
-      const PROPERTY_DATA_KEY = 'current_property_data';
-      try {
-        localStorage.setItem(PROPERTY_DATA_KEY, JSON.stringify(propertyData));
-        console.log('Property data saved to localStorage');
-      } catch (e) {
-        console.error('Error saving property data:', e);
-      }
-
-      // Navigate to property page with address as URL parameter
-      const addressParam = encodeURIComponent(propertyData.address);
-      console.log('Navigating to property page with address:', addressParam);
-      router.push(`/property?address=${addressParam}`);
+      // Navigate to property page with all data as URL parameters
+      const queryParams = new URLSearchParams({
+        data: JSON.stringify(propertyData)
+      });
+      
+      router.push(`/property?${queryParams.toString()}`);
     } else {
       console.log('No search result available for handleContinue');
     }
@@ -326,7 +288,6 @@ export default function Search() {
                         key={idx}
                         className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
                         onClick={() => handleSuggestionClick(suggestion)}
-                        
                       >
                         {suggestion}
                       </div>
@@ -380,8 +341,6 @@ export default function Search() {
               </div>
             </div>
           )}
-
-          
         </div>
       </div>
     </div>

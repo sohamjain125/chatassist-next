@@ -13,6 +13,7 @@ import StickyHeader from './layout/StickyHeader';
 import { useSidebar } from './ui/sidebar';
 import InfoCard from '@/components/ui/InfoCard';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 
 interface PropertyDetailsProps {
@@ -143,20 +144,29 @@ export default function PropertyDetails({
   const displayPostcode = propertyData?.postcode || "";
 
   const SidebarToggle = () => {
-    const { toggleSidebar } = useSidebar();
+    const { toggleSidebar, state } = useSidebar();
+    
     return (
-      <Button 
-        variant="ghost" 
-        size="icon" 
-        onClick={toggleSidebar}
-        className="mr-2 hover:text-white transition-colors"
-      >
-        <Menu className="h-5 w-5 hover:text-white transition-colors" />
-        <span className="sr-only">Toggle sidebar</span>
-      </Button>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={toggleSidebar}
+              className="mr-2 hover:text-white transition-colors"
+            >
+              <Menu className="h-5 w-5 " />
+              <span className="sr-only">Toggle sidebar</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            {state === 'expanded' ? 'Close sidebar' : 'Open sidebar'}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     );
   };
-
   return (
     <div className="space-y-3 ">
       <StickyHeader  >
