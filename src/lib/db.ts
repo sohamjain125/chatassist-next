@@ -1,15 +1,16 @@
 import sql from 'mssql';
 
 const dbConfig = {
-  user: process.env.DB_USER || "Soham",
-  password: process.env.DB_PASSWORD || "Sohamjain@125",
-  server: process.env.DB_SERVER || "soham",
-  database: process.env.DB_NAME || "chat",
+  user: process.env.DB_USER || "",
+  password: process.env.DB_PASSWORD || "",
+  server: process.env.DB_SERVER || "",
+  database: process.env.DB_NAME || "",
   options: { encrypt: true, trustServerCertificate: true }
 };
 
 export async function getConnection() {
   try {
+    console.log("dbConfig",dbConfig);
     const pool = await sql.connect(dbConfig);
     return pool;
   } catch (err) {

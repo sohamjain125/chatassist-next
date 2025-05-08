@@ -87,12 +87,12 @@ const AppLayout = ({ children }: AppLayoutProps) => {
     <SidebarProvider defaultOpen={false}>
       <div className="min-h-screen flex w-full bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
         <Sidebar className="fixed top-0 left-0 h-screen z-40 w-64">
-          <SidebarHeader className="flex h-14 items-center border-b px-4">
-            <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
+          <SidebarHeader className="flex h-14  border-b px-4">
+            <Link href="/dashboard" className="flex  gap-2 font-semibold">
             
               <FontAwesomeIcon
                 icon={faBuilding}
-                style={{ color: "#4c95bb", fontSize: "24px" }}
+                style={{ color: "#4c95bb", fontSize: "20px" }}
               />
               <span className="text-xl font-bold">AddressHub</span>
             </Link>

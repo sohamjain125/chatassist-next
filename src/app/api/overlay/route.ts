@@ -10,13 +10,15 @@ interface Overlay {
   SourceType: string;
 }
 
-const BASE_URL = 'https://surfcoastapi-test.greenlightopm.com/api';
-let authToken: string | null = null;
-let tokenExpiry: number | null = null;
 
+let authToken: string | null = null;
+
+const BASE_URL = process.env.API_URL;
+const USERNAME = process.env.SURF_COAST_USERNAME;
+const PASSWORD = process.env.SURF_COAST_PASSWORD;
 async function getAuthToken() {
   // Check if we have a valid token
-  if (authToken && tokenExpiry && Date.now() < tokenExpiry) {
+  if (authToken ) {
     return authToken;
   }
 
@@ -26,9 +28,9 @@ async function getAuthToken() {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        username: 'greenlight_user',
-        password: '$urfCo@$t_2025'
+      body: JSON.stringify({  
+        username: USERNAME,
+        password: PASSWORD
       }),
     });
 
@@ -45,7 +47,7 @@ async function getAuthToken() {
     const data = await response.json();
     authToken = data.token;
     // Set token expiry to 1 hour from now
-    tokenExpiry = Date.now() + 3600000;
+    // tokenExpiry = Date.now() + 3600000;
     return authToken;
   } catch (error) {
     console.error('Error getting auth token:', error);
