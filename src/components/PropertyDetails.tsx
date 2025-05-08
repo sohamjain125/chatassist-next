@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MapPin, MessageSquare, Menu, Loader2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import Map from '@/components/Map';
@@ -29,9 +29,13 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const isMounted = useRef(false);
 
   useEffect(() => {
     const fetchData = async () => {
+      if (isMounted.current) return;
+      isMounted.current = true;
+
       try {
         setLoading(true);
         setError(null);
@@ -44,24 +48,26 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
 
         const parsedData = JSON.parse(data) as { assessmentNumber: string };
         const assessmentNumber = parsedData.assessmentNumber;
-        const propertyResponse = await fetch(`/api/property-details?assessmentNumber=${assessmentNumber}`);
-        const propertyData = await propertyResponse.json();
-        setPropertyDetails(propertyData);
+        
+        // Fetch all data in parallel
+        const [propertyResponse, zonesResponse, overlaysResponse] = await Promise.all([
+          fetch(`/api/property-details?assessmentNumber=${assessmentNumber}`),
+          fetch(`/api/zone?assessmentNumber=${assessmentNumber}`),
+          fetch(`/api/overlay?assessmentNumber=${assessmentNumber}`)
+        ]);
 
-        if (!assessmentNumber) {
-          throw new Error('No assessment number available');
-        }
-
-        // Fetch zones
-        const zonesResponse = await fetch(`/api/zone?assessmentNumber=${assessmentNumber}`);
+        if (!propertyResponse.ok) throw new Error('Failed to fetch property details');
         if (!zonesResponse.ok) throw new Error('Failed to fetch zones');
-        const zonesData = await zonesResponse.json();
-        setZones(zonesData);
-
-        // Fetch overlays
-        const overlaysResponse = await fetch(`/api/overlay?assessmentNumber=${assessmentNumber}`);
         if (!overlaysResponse.ok) throw new Error('Failed to fetch overlays');
-        const overlaysData = await overlaysResponse.json();
+
+        const [propertyData, zonesData, overlaysData] = await Promise.all([
+          propertyResponse.json(),
+          zonesResponse.json(),
+          overlaysResponse.json()
+        ]);
+
+        setPropertyDetails(propertyData);
+        setZones(zonesData);
         setOverlays(overlaysData);
 
       } catch (err) {
@@ -73,6 +79,10 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
     };
 
     fetchData();
+
+    return () => {
+      isMounted.current = false;
+    };
   }, [searchParams]);
 
   const SidebarToggle = () => {
