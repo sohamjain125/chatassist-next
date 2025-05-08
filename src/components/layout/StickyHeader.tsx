@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { ChevronLeft, User, LogOut, UserCircle } from 'lucide-react';
+import { ChevronLeft, LogOut, UserCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { useSidebar } from '@/components/ui/sidebar';
@@ -19,28 +19,16 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import UserIcon from '../icons/UserIcon';
+import { StickyHeaderProps } from '@/interface/header.interface';
+import { UserInfo } from '@/interface/user.interface';
 
-interface StickyHeaderProps {
-  title?: string;
-  address?: string;
-  suburb?: string;
-  state?: string;
-  postcode?: string;
-  children?: React.ReactNode;
-  showBackButton?: boolean;
-}
 
-interface UserInfo {
-  firstname: string;
-  lastname: string;
-  email: string;
-}
-
-const StickyHeader: React.FC<StickyHeaderProps> = ({ 
-  title, 
-  address, 
-  suburb, 
-  state, 
+const StickyHeader: React.FC<StickyHeaderProps> = ({
+  title,
+  address,
+  suburb,
+  state,
   postcode,
   children,
   showBackButton = false
@@ -92,11 +80,11 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({
       <div className="flex items-center justify-between h-full px-4 w-full">
         <div className="flex items-center space-x-4 min-w-0">
           {children}
-          
+
           {showBackButton && (
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => router.back()}
               className="mr-2 shrink-0"
             >
@@ -104,7 +92,7 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({
               <span className="sr-only">Back</span>
             </Button>
           )}
-          
+
           {address ? (
             <div className="min-w-0 flex-1">
               <h1 className="text-lg font-semibold truncate">{address}</h1>
@@ -120,8 +108,8 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({
         </div>
 
         <div className="flex items-center gap-2 shrink-0 ml-4">
-          <span className="text-sm text-gray-600 hidden md:block">
-                {userInfo.firstname} {userInfo.lastname}
+          <span className="text-m text-gray-600 font-semibold hidden md:block">
+            {userInfo.firstname} {userInfo.lastname}
           </span>
           <TooltipProvider>
             <Tooltip>
@@ -129,7 +117,7 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({
                 <DropdownMenuTrigger asChild>
                   <TooltipTrigger asChild>
                     <Button variant="ghost" size="icon" className="inline-flex items-center justify-center h-8 w-8 rounded-full hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer hover:text-white">
-                      <User className="h-5 w-5" />
+                      <UserIcon className="h-5 w-5" />
                       <span className="sr-only">User menu</span>
                     </Button>
                   </TooltipTrigger>
