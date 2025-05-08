@@ -100,11 +100,9 @@ export default function PropertyPage() {
 
   return (
    
-      <div className="container mx-auto pl-0 pr-0 ">
-        <PropertyDetails 
-         propertyData={propertyData}
-        />
-      </div>
+    <div className="container mx-auto px-4 py-4 max-w-full md:max-w-3xl lg:max-w-5xl xl:max-w-7xl h-[60vh] md:h-[70vh] lg:h-[80vh]">
+  <PropertyDetails propertyData={propertyData} />
+</div>
  
   );
 }
