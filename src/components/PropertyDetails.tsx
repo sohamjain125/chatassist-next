@@ -239,61 +239,8 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
         </div>
 
         {/* Right Section */}
-        {/* <div className="lg:col-span-7 flex flex-col gap-4 max-h-[80vh] overflow-y-auto">
-          <Card className="p-6 flex flex-col gap-4">
-            <h3 className="text-lg font-semibold mb-2">What would you like to do?</h3>
-            <Tabs defaultValue="planning" className="w-full">
-              <TabsList className="mb-4">
-                <TabsTrigger value="planning">Planning</TabsTrigger>
-                <TabsTrigger value="building">Building</TabsTrigger>
-              </TabsList>
-              <TabsContent value="planning">
-                <InfoCard
-                  icon={
-                    <svg className="h-12 w-12 text-primary" viewBox="0 0 24 24">
-                      <path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/>
-                      <path fill="currentColor" d="M7 12h2v5H7zm4-3h2v8h-2zm4-3h2v11h-2z"/>
-                    </svg>
-                  }
-                  title="Planning assessment report"
-                  description="Our instant tool shows whether your project in NSW is eligible for fast CDC approval. With a transparent audit trail, it shows max height and floor area, min lot area, and other building rules."
-                  tip={<span className="text-xs text-blue-600 underline cursor-pointer hover:text-blue-800 ml-2 align-middle" onClick={() => router.push('/planning-assessment-report')}>Not sure what is this? click here to learn more</span>}
-                  buttonLabel="View Report"
-                  onButtonClick={undefined}
-                  buttonDisabled={true}
-                />
-                <InfoCard
-                  icon={
-                    <svg className="h-12 w-12 text-primary" viewBox="0 0 24 24">
-                      <rect x="4" y="4" width="16" height="16" rx="2" fill="currentColor" />
-                      <rect x="7" y="8" width="10" height="2" rx="1" fill="#fff" />
-                      <rect x="7" y="12" width="10" height="2" rx="1" fill="#fff" />
-                    </svg>
-                  }
-                  title="Ai chat"
-                  description="Ai chat is a tool that allows you to chat with the ai to get information about the property."
-                  buttonLabel="Ask AI"
-                  onButtonClick={handleAiClick}
-                  buttonDisabled={isAiLoading}
-                />
-              </TabsContent>
-              <TabsContent value="building">
-                <InfoCard
-                  icon={
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" className="h-12 w-12">
-                      <path fill="#4c95bb" d="M48 0C21.5 0 0 21.5 0 48L0 464c0 26.5 21.5 48 48 48l96 0 0-80c0-26.5 21.5-48 48-48s48 21.5 48 48l0 80 96 0c25.6 0 46.6-20.1 47.9-45.3C327.5 441.9 288 385.6 288 320c0-11 1.1-21.7 3.2-32L272 288c-8.8 0-16-7.2-16-16l0-32c0-8.8 7.2-16 16-16l32 0c4.8 0 9.1 2.1 12.1 5.5c16.9-24.5 40.4-44.1 67.9-56.2L384 48c0-26.5-21.5-48-48-48L48 0zM64 240c0-8.8 7.2-16 16-16l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32zm112-16l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32c0-8.8 7.2-16 16-16zM80 96l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32c0-8.8 7.2-16 16-16zm80 16c0-8.8 7.2-16 16-16l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32zM272 96l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32c0-8.8 7.2-16 16-16zM448 240.1a80 80 0 1 1 0 160 80 80 0 1 1 0-160zm0 208c26.7 0 51.4-8.2 71.9-22.1L599 505.1c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-79.1-79.1c14-20.5 22.1-45.3 22.1-71.9c0-70.7-57.3-128-128-128s-128 57.3-128 128s57.3 128 128 128z"/>
-                    </svg>
-                  }
-                  title="Search for building"
-                  description="Find out if you need a building permit and get started with your application."
-                  buttonLabel="Building Permit"
-                  onButtonClick={() => router.push('/under-construction')}
-                />
-              </TabsContent>
-            </Tabs>
-          </Card>
-        </div> */}
-                <div className="lg:col-span-7 flex flex-col gap-4 max-h-[80vh] overflow-y-auto">
+        
+                <div className="lg:col-span-7 flex flex-col gap-4 max-h-[73vh] overflow-y-auto">
           <Card className="p-6 flex flex-col gap-4">
             <h3 className="text-lg font-semibold mb-2">What would you like to do?</h3>
             <Tabs defaultValue="planning" className="w-full">
