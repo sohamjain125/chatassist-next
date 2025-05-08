@@ -158,8 +158,8 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 mt-4">
         {/* Left Section */}
         <div className="lg:col-span-5 flex flex-col gap-4">
-          <div className="max-h-[80vh] overflow-y-auto">
-            <div className="space-y-4 pb-12">
+          <div className="max-h-[73vh] overflow-y-auto">
+            <div className="space-y-4">
               <Card className="p-4">
                 <div className="space-y-6">
                   <div className="h-[250px] ">
