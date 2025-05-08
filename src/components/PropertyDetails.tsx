@@ -168,6 +168,7 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
                         lat: propertyDetails?.Latitude || 0,
                         lng: propertyDetails?.Longitude || 0
                       }}
+                      propertyPfi={propertyDetails?.Property_ID}
                       zoom={20}
                       height="200px"
                       buildingOutline={propertyDetails?.buildingOutline}
