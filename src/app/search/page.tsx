@@ -178,6 +178,7 @@ export default function Search() {
                   className="pr-24 h-12"
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 />
+                {/* daskdfa */}
                 {searchQuery && (
                   <button
                     onClick={() => { 
