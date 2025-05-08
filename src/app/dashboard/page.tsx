@@ -28,7 +28,7 @@ export default function Dashboard() {
   const [recentSearches, setRecentSearches] = useState<HistoryItem[]>([]);
   const [userInfo, setUserInfo] = useState<UserInfo>({ firstname: '', lastname: '' });
   
-  // Load search history on component mount
+  // Load search history on component mount okAY 
   useEffect(() => {
     const loadHistory = () => {
       const historyString = localStorage.getItem(HISTORY_KEY);
