@@ -25,6 +25,7 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
   const [zones, setZones] = useState<Zone[]>([]);
   const [overlays, setOverlays] = useState<Overlay[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAiLoading, setIsAiLoading] = useState(false);
   const [propertyDetails, setPropertyDetails] = useState<PropertyData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -110,6 +111,10 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
     );
   };
 
+  const handleAiClick = () => {
+    setIsAiLoading(true);
+    router.push(`/chat?summary=${encodeURIComponent(propertyData.Address)}`);
+  };
 
   if (error) {
     return (
@@ -124,11 +129,13 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
 
   return (
     <div className="space-y-3 relative">
-      {loading && (
+      {(loading || isAiLoading) && (
         <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="flex flex-col items-center gap-2">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="text-sm text-muted-foreground">Loading property details...</p>
+            <p className="text-sm text-muted-foreground">
+              {loading ? "Loading property details..." : "Loading AI chat..."}
+            </p>
           </div>
         </div>
       )}
@@ -264,7 +271,8 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
                   title="Ai chat"
                   description="Ai chat is a tool that allows you to chat with the ai to get information about the property."
                   buttonLabel="Ask AI"
-                  onButtonClick={() => router.push(`/chat?summary=${encodeURIComponent(propertyData.Address)}`)}
+                  onButtonClick={handleAiClick}
+                  buttonDisabled={isAiLoading}
                 />
               </TabsContent>
               <TabsContent value="building">
