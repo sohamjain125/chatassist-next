@@ -100,13 +100,6 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
     );
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[200px]">
-        <Loader2 className="h-6 w-6 animate-spin" />
-      </div>
-    );
-  }
 
   if (error) {
     return (
@@ -120,7 +113,15 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 relative">
+      {loading && (
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="flex flex-col items-center gap-2">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-sm text-muted-foreground">Loading property details...</p>
+          </div>
+        </div>
+      )}
       <StickyHeader>
         <SidebarToggle />
       </StickyHeader>
@@ -170,7 +171,7 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
                       </div>
                       <div className="flex justify-between items-center p-2 rounded bg-white border text-sm">
                         <dt className="text-gray-600">LGA</dt>
-                        <dd className="font-medium text-xs">{zones[0].LGA}</dd>
+                        <dd className="font-medium text-xs">{zones[0]?.LGA || 'N/A'}</dd>
                       </div>
                       <div className="flex justify-between items-center p-2 rounded bg-white border text-sm">
                         <dt className="text-gray-600">Is multi-lot?</dt>
