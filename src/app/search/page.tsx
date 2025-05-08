@@ -44,8 +44,11 @@ export default function Search() {
     if (value.length > 0) {
       try {
         const response = await fetch(`/api/property-list?query=${encodeURIComponent(value)}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch suggestions');
+        if (response.status === 404) {
+          setError('Property not found');
+          setSuggestions([]);
+          setShowSuggestions(false);
+          return;
         }
         const data = await response.json();
         setSuggestions(data);
@@ -72,12 +75,10 @@ export default function Search() {
     try {
       // First get property suggestions
       const suggestionsResponse = await fetch(`/api/property-list?query=${encodeURIComponent(searchQuery)}`);
-      if (!suggestionsResponse.ok) {
-        throw new Error('Failed to fetch suggestions');
-      }
+     
       const suggestions = await suggestionsResponse.json();
       
-      if (suggestions.length === 0) {
+      if (suggestions.length === 0 || suggestions.message) {
         setError('No properties found for this address');
         return;
       }

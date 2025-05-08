@@ -58,11 +58,11 @@ export async function GET(request: Request) {
         'Authorization': `Bearer ${token}`
       },
     });
-
-    if (!response.ok) {
-      throw new Error(`API responded with status: ${response.status}`);
+    if (response.status === 404) {
+      return NextResponse.json({ message: 'Property not found' }, { status: 404 });
     }
 
+   
     const data = await response.json();
     return NextResponse.json(data);
   } catch (error) { 
