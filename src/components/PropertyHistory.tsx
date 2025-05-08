@@ -1,9 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { ArrowRight, MapPin, Calendar, AlertCircle } from "lucide-react";
+import { ArrowRight, AlertCircle } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { Alert, AlertDescription } from './ui/alert';
 import {
@@ -12,24 +10,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { HistoryItem } from '@/interface/property.interface';
 
 const HISTORY_KEY = 'property_search_history';
 
-type HistoryItem = {
-  address: string;
-  suburb: string;
-  state: string;
-  postcode: string;
-  propertyId: string;
-  timestamp: string;
-  buildingOutline: {
-    coordinates: { lat: number; lng: number }[];
-    measurements: { start: { lat: number; lng: number }; end: { lat: number; lng: number }; length: string }[];
-    area: string;
-  };
-  location: { lat: number; lng: number };
-  [key: string]: any;
-};
+
 
 export default function PropertyHistory() {
   const [history, setHistory] = useState<HistoryItem[]>([]);

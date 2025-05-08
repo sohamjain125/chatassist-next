@@ -2,8 +2,7 @@
 
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -11,48 +10,8 @@ import { Search as SearchIcon, X } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Loader } from '@googlemaps/js-api-loader';
 import proj4 from 'proj4';
+import { MapProps } from '@/interface/map.interface';
 
-
-
-interface Location {
-  lat: number;
-  lng: number;
-}
-
-interface BuildingMeasurement {
-  start: Location;
-  end: Location;
-  length: string;
-}
-
-
-
-interface MapProps {
-  center?: {
-    lat: number;
-    lng: number;
-  };
-  zoom?: number;
-  onLocationSelect?: (location: { lat: number; lng: number }) => void;
-  onAddressSelect?: (address: string) => void;
-  showSearch?: boolean;
-  showControls?: boolean;
-  className?: string;
-  height?: string;
-  initialAddress?: string;
-  readOnly?: boolean;
-  buildingOutline?: {
-    coordinates: Array<{lat: number; lng: number}>;
-    measurements: Array<{
-      start: {lat: number; lng: number};
-      end: {lat: number; lng: number};
-      length: string;
-    }>;
-    area: string;
-  };
-  propertyPfi?: string;
-  tilt?: number;
-}
 
 
 
@@ -101,7 +60,7 @@ const fetchPropertyData = async (pfi: string) => {
 };
 
 export default function Map({
-  center = { lat: -38.3396, lng: 144.3177 }, // Default to Torquay
+  center , // Default to Torquay
   zoom = 13,
   onLocationSelect,
   onAddressSelect,

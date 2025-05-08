@@ -1,14 +1,12 @@
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { Building2, Map, MessageSquare, Menu, History, ChevronDown } from 'lucide-react';
+import {  Menu, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   SidebarProvider,
   Sidebar,
   SidebarContent,
-  SidebarTrigger,
   SidebarHeader,
-  SidebarFooter,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
@@ -23,9 +21,11 @@ import {
 import StickyHeader from './StickyHeader';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBuilding } from '@fortawesome/free-solid-svg-icons';
-import { icon } from '@fortawesome/fontawesome-svg-core';
 import React from 'react';
-
+import MenuIcon from '../icons/MenuIcon';
+import DashboardIcon from '../icons/DashboardIcon';
+import SearchIcon from '../icons/SearchIcon';
+import HistoryIcon from '../icons/HistoryIcon';
 // Sidebar toggle button component
 const SidebarToggle = () => {
   const { toggleSidebar, state } = useSidebar();
@@ -64,15 +64,15 @@ const AppLayout = ({ children }: AppLayoutProps) => {
     { 
       name: 'Dashboard', 
       href: '/dashboard', 
-      icon: Map
+      icon: DashboardIcon
     },
     {
       name: 'Options',
       href: '#',
-      icon: Menu,
+      icon: MenuIcon,
       subItems: [
-        { name: 'Search', href: '/search', icon: MessageSquare },
-        { name: 'History', href: '/history', icon: History }
+        { name: 'Search', href: '/search', icon: SearchIcon },
+        { name: 'History', href: '/history', icon: HistoryIcon }
       ]
     }
   ];
@@ -111,7 +111,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
                       {item.subItems ? (
                         <div className="flex items-center justify-between w-full cursor-pointer">
                           <div className="flex items-center gap-3">
-                            <item.icon className="h-5 w-5" />
+                            <item.icon />
                             <span className='text-lg'>{item.name}</span>
                           </div>
                           <ChevronDown 
@@ -122,7 +122,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
                         </div>
                       ) : (
                         <Link href={item.href} className="flex items-center gap-3">
-                          <item.icon className="h-5 w-5" />
+                          <item.icon />
                           <span className='text-lg'>{item.name}</span>
                         </Link>
                       )}
@@ -137,7 +137,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
                             tooltip={subItem.name}
                           >
                             <Link href={subItem.href} className="flex items-center gap-3">
-                              <subItem.icon className="h-4 w-4" />
+                              <subItem.icon  />
                               <span className='text-base'>{subItem.name}</span>
                             </Link>
                           </SidebarMenuButton>

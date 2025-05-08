@@ -7,12 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2 } from 'lucide-react';
+import { UserInfo } from '@/interface/user.interface';
 
-interface UserInfo {
-  firstname: string;
-  lastname: string;
-  email: string;
-}
 
 export default function Profile() {
   const router = useRouter();

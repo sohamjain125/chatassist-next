@@ -11,11 +11,7 @@ const PlanningAssessmentReportPage = () => {
     alert('Download will be implemented with the production API.');
   };
 
-  const handleAskAI = () => {
-    const message = "I'm looking at the Planning Assessment Report. Can you help me understand what this report includes and how I can use it?";
-    router.push(`/chat?summary=${encodeURIComponent(message)}`);
-  };
-
+ 
 
 
   return (
@@ -55,13 +51,6 @@ const PlanningAssessmentReportPage = () => {
           </p>
         </div>
         
-
-        {/* <button
-          onClick={handleAskAI}
-          className="w-full py-3 text-base bg-[#4c95bb] text-white border-none rounded-lg cursor-pointer mt-2 transition-colors duration-200 font-semibold hover:bg-[#3d7a9b]"
-        >
-          Ask AI Assistant
-        </button> */}
       </div>
 
       {/* Right Section: Button */}

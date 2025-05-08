@@ -122,4 +122,18 @@ export interface PropertyData {
     PFI: string;
     Property_ID: string;
   }
-  
+  export type HistoryItem = {
+    address: string;
+    suburb: string;
+    state: string;
+    postcode: string;
+    propertyId: string;
+    timestamp: string;
+    buildingOutline: {
+      coordinates: { lat: number; lng: number }[];
+      measurements: { start: { lat: number; lng: number }; end: { lat: number; lng: number }; length: string }[];
+      area: string;
+    };
+    location: { lat: number; lng: number };
+    [key: string]: any;
+  };

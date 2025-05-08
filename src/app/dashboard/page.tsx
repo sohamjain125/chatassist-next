@@ -4,25 +4,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { cookies } from 'next/headers';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faComments, faHouse, faLocationDot } from '@fortawesome/free-solid-svg-icons';
+import { faHouse, faLocationDot } from '@fortawesome/free-solid-svg-icons';
 import { Loader2 } from 'lucide-react';
+import { UserInfo } from "@/interface/dashboard.interface";
+import { HistoryItem } from "@/interface/dashboard.interface";
 
-
-interface HistoryItem {
-  address: string;
-  suburb: string;
-  state: string;
-  postcode: string;
-  timestamp: string;
-  [key: string]: any;
-}
-
-interface UserInfo {
-  firstname: string;
-  lastname: string;
-}
 
 export default function Dashboard() {
   const router = useRouter();
@@ -30,13 +17,13 @@ export default function Dashboard() {
   const [userInfo, setUserInfo] = useState<UserInfo>({ firstname: '', lastname: '' });
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
-  
+
   // Load search history on component mount
-  
+
   useEffect(() => {
     // Check for token on client side
     const token = document.cookie.split('; ').find(row => row.startsWith('auth_token='))?.split('=')[1];
-    
+
     if (!token) {
       router.push('/login');
     } else {
@@ -46,18 +33,18 @@ export default function Dashboard() {
           'Authorization': `Bearer ${token}`
         }
       })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          setUserInfo({
-            firstname: data.user.firstname,
-            lastname: data.user.lastname
-          });
-        }
-      })
-      .catch(err => {
-        console.error('Error fetching user info:', err);
-      });
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            setUserInfo({
+              firstname: data.user.firstname,
+              lastname: data.user.lastname
+            });
+          }
+        })
+        .catch(err => {
+          console.error('Error fetching user info:', err);
+        });
     }
   }, [router]);
 
@@ -65,7 +52,7 @@ export default function Dashboard() {
   // Format date function
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
-    
+
     try {
       const date = new Date(dateString);
       return new Intl.DateTimeFormat('en-US', {
@@ -105,7 +92,7 @@ export default function Dashboard() {
           Welcome back, {userInfo.firstname} {userInfo.lastname}!
         </h1>
         <p className="text-muted-foreground">
-        How would you like to me to help you today?
+          How would you like to me to help you today?
         </p>
       </div>
 
@@ -117,12 +104,12 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="h-36 flex items-center justify-center bg-muted/50 rounded-md mb-4">
-             
-               <FontAwesomeIcon
-                  icon={faLocationDot}
-                  beat
-                  style={{ color: '#4c95bb' ,fontSize: '64px' }}
-                />
+
+              <FontAwesomeIcon
+                icon={faLocationDot}
+                beat
+                style={{ color: '#4c95bb', fontSize: '64px' }}
+              />
             </div>
             <Button className="w-full" onClick={handleSearchClick} disabled={isSearchLoading}>
               {isSearchLoading ? (
@@ -136,7 +123,7 @@ export default function Dashboard() {
             </Button>
           </CardContent>
         </Card>
-        
+
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg">Historical requests</CardTitle>
@@ -144,12 +131,12 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="h-36 flex items-center justify-center bg-muted/50 rounded-md mb-4">
-           
-                <FontAwesomeIcon
-                  icon={faHouse}
-                  beat
-                  style={{ color: "#4c95bb", fontSize: "64px" }}
-                />
+
+              <FontAwesomeIcon
+                icon={faHouse}
+                beat
+                style={{ color: "#4c95bb", fontSize: "64px" }}
+              />
 
 
             </div>
@@ -165,10 +152,10 @@ export default function Dashboard() {
             </Button>
           </CardContent>
         </Card>
-        
-       
+
+
       </div>
-      
+
       <div>
         <Card>
           <CardHeader>
@@ -197,9 +184,9 @@ export default function Dashboard() {
                         </div>
                       </div>
                     </div>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => router.push(`/property?data=${encodeURIComponent(JSON.stringify(search))}`)}
                     >
                       View details
@@ -209,21 +196,21 @@ export default function Dashboard() {
               ) : (
                 <div className="text-center py-6 text-muted-foreground">
                   <p>No recent searches found</p>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="mt-2 hover:text-white transition-colors" 
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-2 hover:text-white transition-colors"
                     onClick={() => router.push('/search')}
                   >
                     Search properties
                   </Button>
                 </div>
               )}
-              
+
               {recentSearches.length > 0 && (
                 <div className="text-center mt-4">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={() => router.push('/history')}
                   >
                     View all searches
