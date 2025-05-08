@@ -58,7 +58,7 @@ interface AppLayoutProps {
 
 const AppLayout = ({ children }: AppLayoutProps) => {
   const pathname = usePathname();
-  const router = useRouter();
+
 
   const navigation = [
     { 
@@ -155,7 +155,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
           <StickyHeader>
             <SidebarToggle />
           </StickyHeader>
-          <main className="flex-1 pt-14 px-6 pb-20">
+          <main className="flex-1 pt-14 px-6">
             {children}
           </main>
         </div>
