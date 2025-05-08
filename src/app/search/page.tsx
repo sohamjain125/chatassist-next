@@ -240,8 +240,9 @@ export default function Search() {
                     propertyPfi={selectedProperty.Property_ID}
                     zoom={15}
                     showSearch={false}
-                    readOnly={true}
+                   
                     height="400px"
+                    tilt={30}
                   />
                 </div>
 

@@ -12,11 +12,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Loader } from '@googlemaps/js-api-loader';
 import proj4 from 'proj4';
 
-type GoogleWindow = Window & typeof globalThis & {
-  google: any;
-  initMap: () => void;
-  googleMapsLoaded: boolean;
-};
+
 
 interface Location {
   lat: number;
@@ -29,11 +25,7 @@ interface BuildingMeasurement {
   length: string;
 }
 
-interface BuildingOutline {
-  coordinates: Location[];
-  measurements: BuildingMeasurement[];
-  area: string;
-}
+
 
 interface MapProps {
   center?: {
@@ -59,21 +51,10 @@ interface MapProps {
     area: string;
   };
   propertyPfi?: string;
+  tilt?: number;
 }
 
-// Example usage of proj4 for coordinate transformation
-const transformCoordinates = (lat: number, lng: number) => {
-  // Define the source projection (WGS84 - standard GPS coordinates)
-  const sourceProj = 'EPSG:4326';
-  
-  // Define the target projection (example: UTM Zone 56S)
-  const targetProj = 'EPSG:32756';
-  
-  // Transform the coordinates
-  const [x, y] = proj4(sourceProj, targetProj, [lng, lat]);
-  
-  return { x, y };
-};
+
 
 // Function to transform from EPSG:3111 to WGS84
 const transformFromEPSG3111 = (x: number, y: number) => {
@@ -131,7 +112,8 @@ export default function Map({
   initialAddress = '',
   readOnly = false,
   buildingOutline,
-  propertyPfi
+  propertyPfi,
+  tilt = 45
 }: MapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
@@ -169,6 +151,7 @@ export default function Map({
         
         if (mapRef.current) {
           const mapInstance = new google.maps.Map(mapRef.current, {
+            mapTypeId: 'roadmap',
             center,
             zoom,
             mapTypeControl: false,
@@ -177,10 +160,14 @@ export default function Map({
             zoomControl: showControls,
             scrollwheel: !readOnly,
             draggable: !readOnly,
-            clickableIcons: !readOnly
+            clickableIcons: !readOnly,
+            rotateControl: true,
           });
 
           setMap(mapInstance);
+
+          // Set tilt programmatically
+          mapInstance.setTilt(45); // Enables 45-degree tilt where available
 
           // Initialize places service
           placesService.current = new google.maps.places.PlacesService(mapInstance);

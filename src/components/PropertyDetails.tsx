@@ -172,6 +172,7 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
                       zoom={20}
                       height="200px"
                       buildingOutline={propertyDetails?.buildingOutline}
+                      tilt={90}
                     />
                   </div>
 
