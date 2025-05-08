@@ -8,26 +8,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import Map from '@/components/Map';
 import { Card, CardContent } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
+import { PropertyDetails, PropertySuggestion } from '@/interface/property.interface';
 
-interface PropertySuggestion {
-  Address: string;
-  Assessment_Number: string;
-}
-
-interface PropertyDetails {
-  Address: string;
-  Assessment_Number: string;
-  Latitude: number;
-  Longitude: number;
-  StreetNumber: string;
-  StreetName: string;
-  Suburb: string;
-  State: string;
-  Postcode: string;
-  AllotmentArea: number;
-  LotNo: string;
-  PlanNo: string;
-}
 
 export default function Search() {
   const router = useRouter();
@@ -35,6 +17,7 @@ export default function Search() {
   const [suggestions, setSuggestions] = useState<PropertySuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isContinueLoading, setIsContinueLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedProperty, setSelectedProperty] = useState<PropertyDetails | null>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
@@ -138,6 +121,7 @@ export default function Search() {
 
   const handleContinue = () => {
     if (!selectedProperty) return;
+    setIsContinueLoading(true);
 
     const propertyData = {
       address: selectedProperty.Address,
@@ -163,7 +147,17 @@ export default function Search() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 relative">
+      {(isLoading || isContinueLoading) && (
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="flex flex-col items-center gap-2">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-sm text-muted-foreground">
+              {isLoading ? "Searching properties..." : "Loading property details..."}
+            </p>
+          </div>
+        </div>
+      )}
       <div className="container mx-auto px-4 py-4">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold mb-4">Find answers for your property</h1>
@@ -203,7 +197,11 @@ export default function Search() {
                   onClick={handleSearch}
                   disabled={isLoading}
                 >
-                  <SearchIcon className="h-4 w-4" />
+                  {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <SearchIcon className="h-4 w-4" />
+                  )}
                 </Button>
                 {showSuggestions && suggestions.length > 0 && (
                   <div
@@ -269,15 +267,22 @@ export default function Search() {
                       <div className="font-medium">{selectedProperty.AllotmentArea} m²</div>
                     </div>
                   </div>
-                </div>
-
-                <div className="mt-8">
-                  <Button 
-                    className="w-full"
-                    onClick={handleContinue}
-                  >
-                    Continue with address
-                  </Button>
+                  <div className="mt-6">
+                    <Button 
+                      className="w-full" 
+                      onClick={handleContinue}
+                      disabled={isContinueLoading}
+                    >
+                      {isContinueLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Loading...
+                        </>
+                      ) : (
+                        "Continue with Address"
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>

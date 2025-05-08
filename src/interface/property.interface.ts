@@ -99,3 +99,25 @@ export interface PropertyData {
     GazetteDate: string | null;
     SourceType: string;
   }
+
+
+  export interface PropertySuggestion {
+    Address: string;
+    Assessment_Number: string;
+  }
+  
+  export interface PropertyDetails {
+    Address: string;
+    Assessment_Number: string;
+    Latitude: number;
+    Longitude: number;
+    StreetNumber: string;
+    StreetName: string;
+    Suburb: string;
+    State: string;
+    Postcode: string;
+    AllotmentArea: number;
+    LotNo: string;
+    PlanNo: string;
+  }
+  
