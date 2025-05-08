@@ -136,6 +136,7 @@ export default function Search() {
       allotmentArea: selectedProperty.AllotmentArea,
       lotNo: selectedProperty.LotNo,
       planNo: selectedProperty.PlanNo,
+      Property_ID: selectedProperty.Property_ID,
       timestamp: new Date().toISOString()
     };
 
@@ -236,6 +237,7 @@ export default function Search() {
                 <div className="h-[400px] mb-8">
                   <Map
                     center={{ lat: selectedProperty.Latitude, lng: selectedProperty.Longitude }}
+                    propertyPfi={selectedProperty.Property_ID}
                     zoom={15}
                     showSearch={false}
                     readOnly={true}

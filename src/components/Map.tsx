@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Search as SearchIcon, X } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Loader } from '@googlemaps/js-api-loader';
+import proj4 from 'proj4';
 
 type GoogleWindow = Window & typeof globalThis & {
   google: any;
@@ -57,7 +58,66 @@ interface MapProps {
     }>;
     area: string;
   };
+  propertyPfi?: string;
 }
+
+// Example usage of proj4 for coordinate transformation
+const transformCoordinates = (lat: number, lng: number) => {
+  // Define the source projection (WGS84 - standard GPS coordinates)
+  const sourceProj = 'EPSG:4326';
+  
+  // Define the target projection (example: UTM Zone 56S)
+  const targetProj = 'EPSG:32756';
+  
+  // Transform the coordinates
+  const [x, y] = proj4(sourceProj, targetProj, [lng, lat]);
+  
+  return { x, y };
+};
+
+// Function to transform from EPSG:3111 to WGS84
+const transformFromEPSG3111 = (x: number, y: number) => {
+  // Define the source projection (EPSG:3111 - GDA94 / Vicgrid)
+  const sourceProj = '+proj=lcc +lat_1=-36 +lat_2=-38 +lat_0=-37 +lon_0=145 +x_0=2500000 +y_0=2500000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs';
+  
+  // Define the target projection (WGS84)
+  const targetProj = 'EPSG:4326';
+  
+  // Transform the coordinates
+  const [lng, lat] = proj4(sourceProj, targetProj, [x, y]);
+  console.log(lat, lng);
+  
+  return { lat, lng };
+};
+
+// Function to fetch and transform property data
+const fetchPropertyData = async (pfi: string) => {
+  try {
+    const response = await fetch(
+      `https://corp-gis.mapshare.vic.gov.au/arcgis/rest/services/Mapshare/PropertyAndParcel/MapServer/5/query?f=json&outFields=*&where=PROP_PFI%20%3D%20%27${pfi}%27`
+    );
+    const data = await response.json();
+    
+    if (data.features && data.features.length > 0) {
+      const feature = data.features[0];
+      const rings = feature.geometry.rings[0];
+      
+      // Transform coordinates from EPSG:3111 to WGS84
+      const transformedCoordinates = rings.map(([x, y]: [number, number]) => 
+        transformFromEPSG3111(x, y)
+      );
+      console.log('transformedCoordinates',transformedCoordinates);
+      return {
+        coordinates: transformedCoordinates,
+        properties: feature.attributes
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error('Error fetching property data:', error);
+    return null;
+  }
+};
 
 export default function Map({
   center = { lat: -38.3396, lng: 144.3177 }, // Default to Torquay
@@ -70,7 +130,8 @@ export default function Map({
   height = '',
   initialAddress = '',
   readOnly = false,
-  buildingOutline
+  buildingOutline,
+  propertyPfi
 }: MapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
@@ -87,6 +148,7 @@ export default function Map({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [propertyData, setPropertyData] = useState<any>(null);
 
   // Initialize Google Maps
   useEffect(() => {
@@ -300,6 +362,52 @@ export default function Map({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Add effect to fetch property data when PFI changes
+  useEffect(() => {
+    if (propertyPfi) {
+      const loadPropertyData = async () => {
+        const data = await fetchPropertyData(propertyPfi);
+        if (data) {
+          setPropertyData(data);
+          
+          // Create polygon from property coordinates
+          if (map && data.coordinates) {
+            const polygon = new google.maps.Polygon({
+              paths: data.coordinates,
+              strokeColor: "#4285F4",
+              strokeOpacity: 0.8,
+              strokeWeight: 2,
+              fillColor: "#4285F4",
+              fillOpacity: 0.15,
+              map: map
+            });
+
+            // Fit map to property bounds
+            const bounds = new google.maps.LatLngBounds();
+            data.coordinates.forEach((coord: { lat: number; lng: number }) => {
+              bounds.extend(coord);
+            });
+            map.fitBounds(bounds);
+
+            // Add property info window
+            const center = bounds.getCenter();
+            const infoWindow = new google.maps.InfoWindow({
+              content: `
+                <div>
+                  <h3>${data.properties.ADD_NUM_ROAD_ADDRESS}</h3>
+                  <p>${data.properties.ADD_LOCALITY_NAME} ${data.properties.ADD_STATE} ${data.properties.ADD_POSTCODE}</p>
+                </div>
+              `,
+              position: center
+            });
+            infoWindow.open(map);
+          }
+        }
+      };
+      loadPropertyData();
+    }
+  }, [propertyPfi, map]);
 
   if (error) {
     return (

@@ -119,5 +119,7 @@ export interface PropertyData {
     AllotmentArea: number;
     LotNo: string;
     PlanNo: string;
+    PFI: string;
+    Property_ID: string;
   }
   
