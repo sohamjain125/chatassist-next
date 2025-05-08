@@ -7,7 +7,8 @@ import { useState, useEffect } from "react";
 import { cookies } from 'next/headers';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faComments, faHouse, faLocationDot } from '@fortawesome/free-solid-svg-icons';
-const HISTORY_KEY = 'property_search_history';
+import { Loader2 } from 'lucide-react';
+
 
 interface HistoryItem {
   address: string;
@@ -27,25 +28,11 @@ export default function Dashboard() {
   const router = useRouter();
   const [recentSearches, setRecentSearches] = useState<HistoryItem[]>([]);
   const [userInfo, setUserInfo] = useState<UserInfo>({ firstname: '', lastname: '' });
+  const [isSearchLoading, setIsSearchLoading] = useState(false);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
   
   // Load search history on component mount
-  useEffect(() => {
-    const loadHistory = () => {
-      const historyString = localStorage.getItem(HISTORY_KEY);
-      if (!historyString) return [];
-      
-      try {
-        const parsedHistory = JSON.parse(historyString);
-        return Array.isArray(parsedHistory) ? parsedHistory.slice(0, 3) : [];
-      } catch (e) {
-        console.error('Error parsing history:', e);
-        return [];
-      }
-    };
-    
-    setRecentSearches(loadHistory());
-  }, []);
-
+  
   useEffect(() => {
     // Check for token on client side
     const token = document.cookie.split('; ').find(row => row.startsWith('auth_token='))?.split('=')[1];
@@ -74,12 +61,6 @@ export default function Dashboard() {
     }
   }, [router]);
 
-  // useEffect(() => {
-  //   document.body.style.overflow = 'hidden';
-  //   return () => {
-  //     document.body.style.overflow = '';
-  //   };
-  // }, []);
 
   // Format date function
   const formatDate = (dateString: string) => {
@@ -97,8 +78,28 @@ export default function Dashboard() {
     }
   };
 
+  const handleSearchClick = () => {
+    setIsSearchLoading(true);
+    router.push("/search");
+  };
+
+  const handleHistoryClick = () => {
+    setIsHistoryLoading(true);
+    router.push("/history");
+  };
+
   return (
-    <div className="space-y-6 mt-6">
+    <div className="space-y-6 mt-6 relative">
+      {(isSearchLoading || isHistoryLoading) && (
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="flex flex-col items-center gap-2">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-sm text-muted-foreground">
+              {isSearchLoading ? "Loading search..." : "Loading history..."}
+            </p>
+          </div>
+        </div>
+      )}
       <div className="flex flex-col space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">
           Welcome back, {userInfo.firstname} {userInfo.lastname}!
@@ -123,15 +124,22 @@ export default function Dashboard() {
                   style={{ color: '#4c95bb' ,fontSize: '64px' }}
                 />
             </div>
-            <Button className="w-full" onClick={() => router.push("/search")}>
-              Search Properties
+            <Button className="w-full" onClick={handleSearchClick} disabled={isSearchLoading}>
+              {isSearchLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Loading...
+                </>
+              ) : (
+                "Search properties"
+              )}
             </Button>
           </CardContent>
         </Card>
         
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Historical Requests</CardTitle>
+            <CardTitle className="text-lg">Historical requests</CardTitle>
             <CardDescription>View historical data and transactions</CardDescription>
           </CardHeader>
           <CardContent>
@@ -145,8 +153,15 @@ export default function Dashboard() {
 
 
             </div>
-            <Button className="w-full" onClick={() => router.push("/history")}>
-              View Property History
+            <Button className="w-full" onClick={handleHistoryClick} disabled={isHistoryLoading}>
+              {isHistoryLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Loading...
+                </>
+              ) : (
+                "View property history"
+              )}
             </Button>
           </CardContent>
         </Card>
@@ -157,7 +172,7 @@ export default function Dashboard() {
       <div>
         <Card>
           <CardHeader>
-            <CardTitle className="text-xl">Recent Searches</CardTitle>
+            <CardTitle className="text-xl">Recent searches</CardTitle>
             <CardDescription>
               Your recently searched properties
             </CardDescription>
@@ -187,7 +202,7 @@ export default function Dashboard() {
                       size="sm" 
                       onClick={() => router.push(`/property?data=${encodeURIComponent(JSON.stringify(search))}`)}
                     >
-                      View Details
+                      View details
                     </Button>
                   </div>
                 ))
@@ -200,7 +215,7 @@ export default function Dashboard() {
                     className="mt-2 hover:text-white transition-colors" 
                     onClick={() => router.push('/search')}
                   >
-                    Search Properties
+                    Search properties
                   </Button>
                 </div>
               )}
@@ -211,7 +226,7 @@ export default function Dashboard() {
                     variant="outline" 
                     onClick={() => router.push('/history')}
                   >
-                    View All Searches
+                    View all searches
                   </Button>
                 </div>
               )}
