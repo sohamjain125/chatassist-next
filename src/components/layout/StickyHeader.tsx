@@ -116,8 +116,8 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="inline-flex items-center justify-center h-8 w-8 rounded-full hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer hover:text-white">
-                      <UserIcon className="h-5 w-5" />
+                    <Button variant="ghost" size="icon" className="inline-flex items-center justify-center h-8 w-8 rounded-full  cursor-pointer hover:text-white">
+                      <UserIcon className="h-5 w-5 hover:text-white" />
                       <span className="sr-only">User menu</span>
                     </Button>
                   </TooltipTrigger>
@@ -133,7 +133,7 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => router.push('/profile')}>
-                    <UserCircle className="mr-2 h-4 w-4" />
+                    <UserCircle className="mr-2 h-4 w-4 hover:text-white" />
                     <span>Profile</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleLogout}>
