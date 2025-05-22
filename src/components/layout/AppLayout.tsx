@@ -94,7 +94,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
                 icon={faBuilding}
                 style={{ color: "#4c95bb", fontSize: "20px" }}
               />
-              <span className="text-xl font-bold">AddressHub</span>
+              <span className="text-xl font-bold text-black">AddressHub</span>
             </Link>
           </SidebarHeader>
           <SidebarContent>
@@ -112,7 +112,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
                         <div className="flex items-center justify-between w-full cursor-pointer">
                           <div className="flex items-center gap-3">
                             <item.icon />
-                            <span className='text-lg'>{item.name}</span>
+                            <span className='text-lg text-black'>{item.name}</span>
                           </div>
                           <ChevronDown 
                             className={`h-4 w-4 transition-transform duration-200 ${
@@ -123,7 +123,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
                       ) : (
                         <Link href={item.href} className="flex items-center gap-3">
                           <item.icon />
-                          <span className='text-lg'>{item.name}</span>
+                          <span className='text-lg text-black'>{item.name}</span>
                         </Link>
                       )}
                     </SidebarMenuButton>
@@ -138,7 +138,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
                           >
                             <Link href={subItem.href} className="flex items-center gap-3">
                               <subItem.icon  />
-                              <span className='text-base'>{subItem.name}</span>
+                              <span className='text-base text-black'>{subItem.name}</span>
                             </Link>
                           </SidebarMenuButton>
                         ))}
