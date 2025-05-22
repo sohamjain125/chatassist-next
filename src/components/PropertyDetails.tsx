@@ -195,9 +195,10 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
                       <div className="flex justify-between items-center p-2 rounded bg-white border text-sm">
                         <dt className="text-gray-600">Is multi-lot?</dt>
                         <dd className="font-medium text-xs">
-                          <Badge variant={propertyData.LotType === 'Yes' ? 'default' : 'secondary'}>
+                          {/* <Badge variant={propertyData.LotType === 'Yes' ? 'default' : 'secondary'}>
                             {propertyData.LotType}
-                          </Badge>
+                          </Badge> */}
+                          {propertyData.LotType === 'Yes' ? 'Yes' : 'No'}
                         </dd>
                       </div>
                       <div className="flex justify-between items-center p-2 rounded bg-white border text-sm">
