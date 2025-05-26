@@ -7,12 +7,16 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { sendMessageToLex } from "@/services/lexService";
+import { useToast } from "@/hooks/use-toast";
+import { ImageResponseCard } from "@aws-sdk/client-lex-runtime-v2";
 
 type MessageType = {
   id: string;
   content: string;
   sender: "user" | "bot";
   timestamp: Date;
+  responseCard?: ImageResponseCard;
 };
 
 export default function Chatbot() {
@@ -22,6 +26,8 @@ export default function Chatbot() {
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const sessionId = useRef<string>(Date.now().toString());
+  const { toast } = useToast();
 
   // Add initial welcome message and property info if provided
   useEffect(() => {
@@ -53,50 +59,89 @@ export default function Chatbot() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault(); 
-    
-    if (!input.trim()) return;
-    
+  const handleButtonClick = async (value: string) => {
     // Add user message
     const userMessage: MessageType = {
       id: Date.now().toString(),
-      content: input,
+      content: value,
       sender: "user",
       timestamp: new Date()
     };
     
     setMessages(prev => [...prev, userMessage]);
-    setInput("");
     setIsTyping(true);
     
-    // Simulate bot response after delay
-    setTimeout(() => {
-      const responses = [
-        "I can help you find information about property values in that area.",
-        "Looking at recent sales data, properties in that neighborhood have increased in value by about 8% over the last year.",
-        "The average price per square foot in that area is $275.",
-        "That property was last sold in 2018 for $450,000.",
-        "I'd recommend checking the property history tab for more detailed information about previous sales.",
-        "Based on my analysis, that location has good investment potential due to upcoming development projects."
-      ];
+    try {
+      // Send message to Lex
+      const response = await sendMessageToLex(value, sessionId.current);
       
       const botMessage: MessageType = {
         id: Date.now().toString(),
-        content: responses[Math.floor(Math.random() * responses.length)],
+        content: response.message,
         sender: "bot",
-        timestamp: new Date()
+        timestamp: new Date(),
+        responseCard: response.responseCard
       };
       
       setMessages(prev => [...prev, botMessage]);
+    } catch (error) {
+      console.error("Error communicating with Lex:", error);
+      toast({
+        title: "Error",
+        description: "Failed to get response from the assistant. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
+  };
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault(); 
+    
+    if (!input.trim()) return;
+    
+    const message = input;
+    setInput("");
+    
+    // Add user message
+    const userMessage: MessageType = {
+      id: Date.now().toString(),
+      content: message,
+      sender: "user",
+      timestamp: new Date()
+    };
+    
+    setMessages(prev => [...prev, userMessage]);
+    setIsTyping(true);
+    
+    try {
+      // Send message to Lex
+      const response = await sendMessageToLex(message, sessionId.current);
+      
+      const botMessage: MessageType = {
+        id: Date.now().toString(),
+        content: response.message,
+        sender: "bot",
+        timestamp: new Date(),
+        responseCard: response.responseCard
+      };
+      
+      setMessages(prev => [...prev, botMessage]);
+    } catch (error) {
+      console.error("Error communicating with Lex:", error);
+      toast({
+        title: "Error",
+        description: "Failed to get response from the assistant. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   return (
-    <div className="space-y-6 ">
-     
-      
+    <div className="space-y-6">
       <Card className="border-0 h shadow-lg mt-2">
         <CardHeader className="pb-0">
           <CardTitle className="flex items-center gap-2">
@@ -110,7 +155,7 @@ export default function Chatbot() {
           <CardDescription>Ask questions about properties, real estate, or using this application</CardDescription>
           <Separator className="mt-4" />
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent>
           <div className="h-[calc(100vh-20rem)] overflow-y-auto p-6">
             <div className="space-y-6">
               {messages.map((message) => (
@@ -142,6 +187,24 @@ export default function Chatbot() {
                       </div>
                     )}
                     <div className="text-sm">{message.content}</div>
+                    {message.responseCard?.title && message.responseCard?.buttons && (
+                      <div className="mt-4">
+                        <div className="font-medium mb-2">{message.responseCard.title}</div>
+                        <div className="flex flex-wrap gap-2">
+                          {message.responseCard.buttons.map((button, index) => (
+                            <Button
+                              key={index}
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleButtonClick(button.value || '')}
+                              disabled={isTyping}
+                            >
+                              {button.text}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                     {message.sender === "user" && (
                       <div className="text-xs text-right mt-1 text-primary-foreground/70">
                         {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -150,7 +213,6 @@ export default function Chatbot() {
                   </div>
                 </div>
               ))}
-              
               {isTyping && (
                 <div className="flex justify-start">
                   <div className="max-w-[80%] rounded-lg px-4 py-2 bg-muted">
@@ -162,7 +224,6 @@ export default function Chatbot() {
                   </div>
                 </div>
               )}
-              
               <div ref={messagesEndRef} />
             </div>
           </div>
@@ -175,6 +236,7 @@ export default function Chatbot() {
               onChange={(e) => setInput(e.target.value)}
               className="flex-1"
               disabled={isTyping}
+              autoFocus
             />
             <Button type="submit" disabled={isTyping || !input.trim()}>
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
