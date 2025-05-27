@@ -13,6 +13,7 @@ import InfoCard from '@/components/ui/InfoCard';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Overlay, PropertyData, Zone } from '@/interface/property.interface';
+import { toast } from '@/components/ui/use-toast';
 
 
 
@@ -47,19 +48,15 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
           throw new Error('No property data available');
         }
 
-        const parsedData = JSON.parse(data) as { assessmentNumber: string };
-        const assessmentNumber = parsedData.assessmentNumber;
+        const parsedData = JSON.parse(data) as { PropertyNo: string };
+        const PropertyNo = parsedData.PropertyNo;
         
         // Fetch all data in parallel
         const [propertyResponse, zonesResponse, overlaysResponse] = await Promise.all([
-          fetch(`/api/property-details?assessmentNumber=${assessmentNumber}`),
-          fetch(`/api/zone?assessmentNumber=${assessmentNumber}`),
-          fetch(`/api/overlay?assessmentNumber=${assessmentNumber}`)
+          fetch(`/api/property-details?assessmentNumber=${PropertyNo}`),
+          fetch(`/api/zone?assessmentNumber=${PropertyNo}`),
+          fetch(`/api/overlay?assessmentNumber=${PropertyNo}`)
         ]);
-
-        if (!propertyResponse.ok) throw new Error('Failed to fetch property details');
-        if (!zonesResponse.ok) throw new Error('Failed to fetch zones');
-        if (!overlaysResponse.ok) throw new Error('Failed to fetch overlays');
 
         const [propertyData, zonesData, overlaysData] = await Promise.all([
           propertyResponse.json(),
@@ -67,9 +64,14 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
           overlaysResponse.json()
         ]);
 
+        // Check if property data is valid
+        if (!propertyData || !propertyData.PropertyNo) {
+          throw new Error('Invalid property data received');
+        }
+
         setPropertyDetails(propertyData);
-        setZones(zonesData);
-        setOverlays(overlaysData);
+        setZones(Array.isArray(zonesData) ? zonesData : []);
+        setOverlays(Array.isArray(overlaysData) ? overlaysData : []);
 
       } catch (err) {
         console.error('Error fetching property details:', err);
@@ -112,8 +114,20 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
   };
 
   const handleAiClick = () => {
+    if (!propertyData.SearchId) {
+      toast({
+        title: "Error",
+        description: "Search ID not found. Please try searching for the property again.",
+        variant: "destructive",
+      });
+      return;
+    }
     setIsAiLoading(true);
-    router.push(`/chat?summary=${encodeURIComponent(propertyData.Address)}`);
+    const searchParams = new URLSearchParams({
+      searchId: propertyData.SearchId.toString(),
+      message: `Tell me about ${propertyData.Address}`
+    });
+    router.push(`/chat?${searchParams.toString()}`);
   };
 
   if (error) {
@@ -203,7 +217,7 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
                       </div>
                       <div className="flex justify-between items-center p-2 rounded bg-white border text-sm">
                         <dt className="text-gray-600">Property ID</dt>
-                        <dd className="font-medium text-xs">{propertyData.Property_ID}</dd>
+                        <dd className="font-medium text-xs">{propertyData.PropertyNo}</dd>
                       </div>
                     </dl>
                   </div>
@@ -282,7 +296,7 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
                 <InfoCard
                   icon={
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" className="h-12 w-12">
-                      <path fill="#0369a0" d="M48 0C21.5 0 0 21.5 0 48L0 464c0 26.5 21.5 48 48 48l96 0 0-80c0-26.5 21.5-48 48-48s48 21.5 48 48l0 80 96 0c25.6 0 46.6-20.1 47.9-45.3C327.5 441.9 288 385.6 288 320c0-11 1.1-21.7 3.2-32L272 288c-8.8 0-16-7.2-16-16l0-32c0-8.8 7.2-16 16-16l32 0c4.8 0 9.1 2.1 12.1 5.5c16.9-24.5 40.4-44.1 67.9-56.2L384 48c0-26.5-21.5-48-48-48L48 0zM64 240c0-8.8 7.2-16 16-16l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32zm112-16l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32c0-8.8 7.2-16 16-16zM80 96l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32c0-8.8 7.2-16 16-16zm80 16c0-8.8 7.2-16 16-16l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32zM272 96l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32c0-8.8 7.2-16 16-16zM448 240.1a80 80 0 1 1 0 160 80 80 0 1 1 0-160zm0 208c26.7 0 51.4-8.2 71.9-22.1L599 505.1c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-79.1-79.1c14-20.5 22.1-45.3 22.1-71.9c0-70.7-57.3-128-128-128s-128 57.3-128 128s57.3 128 128 128z"/>
+                      <path fill="#0369a0" d="M48 0C21.5 0 0 21.5 0 48L0 464c0 26.5 21.5 48 48 48l96 0 0-80c0-26.5 21.5-48 48-48s48 21.5 48 48l0 80 96 0c25.6 0 46.6-20.1 47.9-45.3C327.5 441.9 288 385.6 288 320c0-11 1.1-21.7 3.2-32L272 288c-8.8 0-16-7.2-16-16l0-32c0-8.8 7.2-16 16-16l32 0c4.8 0 9.1 2.1 12.1 5.5c16.9-24.5 40.4-44.1 67.9-56.2L384 48c0-26.5-21.5-48-48-48L48 0zM64 240c0-8.8 7.2-16 16-16l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32zm112-16l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32c0-8.8 7.2-16 16-16zm80 16c0-8.8 7.2-16 16-16l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32zM272 96l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32c0-8.8 7.2-16 16-16zM448 240.1a80 80 0 1 1 0 160 80 80 0 1 1 0-160zm0 208c26.7 0 51.4-8.2 71.9-22.1L599 505.1c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-79.1-79.1c14-20.5 22.1-45.3 22.1-71.9c0-70.7-57.3-128-128-128s-128 57.3-128 128s57.3 128 128 128z"/>
                     </svg>
                   }
                   title="Search for building"

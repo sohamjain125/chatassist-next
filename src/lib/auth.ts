@@ -9,7 +9,7 @@ export async function registerUser(firstName: string, lastName: string, email: s
     // Check if user exists
     const existing = await pool.request()
       .input('email', sql.NVarChar, email)
-      .query('SELECT id FROM Users WHERE email = @email');
+      .query('SELECT UserId FROM Users WHERE email = @email');
     
     if (existing.recordset.length > 0) {
       return { error: 'Email already registered' };
@@ -47,7 +47,7 @@ export async function loginUser(email: string, password: string) {
     }
 
     const token = jwt.sign(
-      { id: user.id, email: user.email },
+      { UserId: user.UserId, email: user.email },
       process.env.JWT_SECRET || 'secret',
       { expiresIn: '1d' }
     );
@@ -55,7 +55,7 @@ export async function loginUser(email: string, password: string) {
     return {
       token,
       user: {
-        id: user.id,
+        UserId: user.UserId,
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email
@@ -68,12 +68,12 @@ export async function loginUser(email: string, password: string) {
 
 export async function verifyToken(token: string) {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as { id: number, email: string };
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as { UserId: number, email: string };
     
     const pool = await getConnection();
     const result = await pool.request()
-      .input('id', sql.Int, decoded.id)
-      .query('SELECT id, firstName, lastName, email FROM Users WHERE id = @id');
+      .input('UserId', sql.Int, decoded.UserId)
+      .query('SELECT UserId, firstName, lastName, email FROM Users WHERE UserId = @UserId');
 
     const user = result.recordset[0];
     if (!user) {
@@ -81,7 +81,7 @@ export async function verifyToken(token: string) {
     }
 
     return {
-      id: user.id,
+      UserId: user.UserId,
       firstname: user.firstName,
       lastname: user.lastName,
       email: user.email
@@ -89,4 +89,29 @@ export async function verifyToken(token: string) {
   } catch (err) {
     return null;
   }
-} 
+}
+
+export interface User {
+  firstname: string;
+  lastname: string;
+  email: string;
+  UserId: number;
+}
+
+export function saveUserToLocalStorage(user: User) {
+  localStorage.setItem('user', JSON.stringify(user));
+}
+
+export function getUserFromLocalStorage(): User | null {
+  const userStr = localStorage.getItem('user');
+  if (!userStr) return null;
+  try {
+    return JSON.parse(userStr);
+  } catch {
+    return null;
+  }
+}
+
+export function clearUserFromLocalStorage() {
+  localStorage.removeItem('user');
+}   

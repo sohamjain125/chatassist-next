@@ -30,7 +30,8 @@ export async function GET(request: Request) {
       user: {
         firstname: user.firstname,
         lastname: user.lastname,
-        email: user.email
+        email: user.email,
+        UserId: user.UserId
       }
     });
   } catch (err: any) {

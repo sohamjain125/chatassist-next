@@ -28,13 +28,17 @@ export default function PropertyPage() {
           throw new Error('No property data available');
         }
 
-        const parsedData = JSON.parse(data) as { assessmentNumber: string };
-        const assessmentNumber = parsedData.assessmentNumber;
-        const propertyResponse = await fetch(`/api/property-details?assessmentNumber=${assessmentNumber}`);
+        const parsedData = JSON.parse(data) as { PropertyNo: string };
+        const PropertyNo = parsedData.PropertyNo;
+        const searchId = searchParams?.get('searchId');
+        const propertyResponse = await fetch(`/api/property-details?assessmentNumber=${PropertyNo}`);
         const propertyData = await propertyResponse.json();
+        if (searchId) {
+          propertyData.SearchId = parseInt(searchId);
+        }
         setPropertyData(propertyData);
 
-        if (!assessmentNumber) {
+        if (!PropertyNo) {
           throw new Error('No assessment number available');
         }
       }

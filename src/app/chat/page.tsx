@@ -22,33 +22,99 @@ type MessageType = {
 export default function Chatbot() {
   const searchParams = useSearchParams();
   const initialMessage = searchParams?.get('message') ?? null;
+  const searchId = searchParams?.get('searchId');
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const sessionId = useRef<string>(Date.now().toString());
+  const sessionId = useRef<string>(`${searchId}-${Date.now()}`);
   const { toast } = useToast();
 
-  // Add initial welcome message and property info if provided
+  // Load chat history if searchId is provided
   useEffect(() => {
-    const welcomeMessage: MessageType = {
-      id: "welcome",
-      content: "Hello! I'm your property assistant. Ask me anything about real estate, property values, or how to use the Address Explorer Hub.",
-      sender: "bot",
-      timestamp: new Date()
-    };
-    if (initialMessage) {
-      const propertyMessage: MessageType = {
-        id: "property-info",
-        content: initialMessage,
-        sender: "user",
+    if (searchId) {
+      loadChatHistory();
+    } else {
+      // Add initial welcome message if no history
+      const welcomeMessage: MessageType = {
+        id: "welcome",
+        content: "Hello! I'm your property assistant. Ask me anything about real estate, property values, or how to use the Address Explorer Hub.",
+        sender: "bot",
         timestamp: new Date()
       };
-      setMessages([propertyMessage, welcomeMessage]);
-    } else {
-      setMessages([welcomeMessage]);
+      if (initialMessage) {
+        const propertyMessage: MessageType = {
+          id: "property-info",
+          content: initialMessage,
+          sender: "user",
+          timestamp: new Date()
+        };
+        setMessages([propertyMessage, welcomeMessage]);
+      } else {
+        setMessages([welcomeMessage]);
+      }
     }
-  }, [initialMessage]);
+  }, [searchId, initialMessage]);
+
+  const loadChatHistory = async () => {
+    try {
+      const response = await fetch(`/api/chat/history?searchId=${searchId}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        const loadedMessages = data.messages.map((msg: any) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp)
+        }));
+        setMessages(loadedMessages);
+        
+        // Update sessionId to match the loaded chat session
+        if (data.sessionId) {
+          sessionId.current = data.sessionId;
+        }
+      }
+    } catch (error) {
+      console.error('Error loading chat history:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load chat history",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const saveChat = async (newMessages: MessageType[]) => {
+    if (!searchId) return;
+
+    try {
+      const response = await fetch('/api/chat/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          searchId,
+          sessionId: sessionId.current,
+          messages: newMessages.map(msg => ({
+            ...msg,
+            timestamp: msg.timestamp.toISOString()
+          }))
+        }),
+      });
+      
+      const data = await response.json();
+      if (data.success && data.sessionId) {
+        sessionId.current = data.sessionId;
+      }
+    } catch (error) {
+      console.error('Error saving chat:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save chat history",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Scroll to bottom when messages update
   useEffect(() => {
@@ -68,7 +134,8 @@ export default function Chatbot() {
       timestamp: new Date()
     };
     
-    setMessages(prev => [...prev, userMessage]);
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
     setIsTyping(true);
     
     try {
@@ -83,7 +150,13 @@ export default function Chatbot() {
         responseCard: response.responseCard
       };
       
-      setMessages(prev => [...prev, botMessage]);
+      const updatedMessages = [...newMessages, botMessage];
+      setMessages(updatedMessages);
+      
+      // Save chat after both messages are added
+      if (searchId) {
+        await saveChat(updatedMessages);
+      }
     } catch (error) {
       console.error("Error communicating with Lex:", error);
       toast({
@@ -112,7 +185,8 @@ export default function Chatbot() {
       timestamp: new Date()
     };
     
-    setMessages(prev => [...prev, userMessage]);
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
     setIsTyping(true);
     
     try {
@@ -127,7 +201,13 @@ export default function Chatbot() {
         responseCard: response.responseCard
       };
       
-      setMessages(prev => [...prev, botMessage]);
+      const updatedMessages = [...newMessages, botMessage];
+      setMessages(updatedMessages);
+      
+      // Save chat after both messages are added
+      if (searchId) {
+        await saveChat(updatedMessages);
+      }
     } catch (error) {
       console.error("Error communicating with Lex:", error);
       toast({
@@ -187,11 +267,11 @@ export default function Chatbot() {
                       </div>
                     )}
                     <div className="text-sm">{message.content}</div>
-                    {message.responseCard?.title && message.responseCard?.buttons && (
+                    {message.responseCard && (
                       <div className="mt-4">
                         <div className="font-medium mb-2">{message.responseCard.title}</div>
                         <div className="flex flex-wrap gap-2">
-                          {message.responseCard.buttons.map((button, index) => (
+                          {message.responseCard.buttons?.map((button, index) => (
                             <Button
                               key={index}
                               variant="outline"

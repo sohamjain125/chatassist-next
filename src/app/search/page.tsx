@@ -10,7 +10,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
 import { PropertyDetails, PropertySuggestion } from '@/interface/property.interface';
 
-
 export default function Search() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
@@ -84,7 +83,7 @@ export default function Search() {
       }
 
       // Get details for the first suggestion
-      const propertyResponse = await fetch(`/api/property-details?assessmentNumber=${suggestions[0].Assessment_Number}`);
+      const propertyResponse = await fetch(`/api/property-details?assessmentNumber=${suggestions[0].PropertyNo}`);
       if (!propertyResponse.ok) {
         throw new Error('Failed to fetch property details');
       }
@@ -106,7 +105,7 @@ export default function Search() {
     setError(null);
 
     try {
-      const response = await fetch(`/api/property-details?assessmentNumber=${suggestion.Assessment_Number}`);
+      const response = await fetch(`/api/property-details?assessmentNumber=${suggestion.PropertyNo}`);
       if (!response.ok) {
         throw new Error('Failed to fetch property details');
       }
@@ -120,32 +119,141 @@ export default function Search() {
     }
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!selectedProperty) return;
     setIsContinueLoading(true);
 
-    const propertyData = {
-      address: selectedProperty.Address,
-      assessmentNumber: selectedProperty.Assessment_Number,
-      latitude: selectedProperty.Latitude,
-      longitude: selectedProperty.Longitude,
-      streetNumber: selectedProperty.StreetNumber,
-      streetName: selectedProperty.StreetName,
-      suburb: selectedProperty.Suburb,
-      state: selectedProperty.State,
-      postcode: selectedProperty.Postcode,
-      allotmentArea: selectedProperty.AllotmentArea,
-      lotNo: selectedProperty.LotNo,
-      planNo: selectedProperty.PlanNo,
-      Property_ID: selectedProperty.Property_ID,
-      timestamp: new Date().toISOString()
-    };
+    try {
+      // Fetch zones and overlays data
+      const [zonesResponse, overlaysResponse] = await Promise.all([
+        fetch(`/api/zone?assessmentNumber=${selectedProperty.PropertyNo}`),
+        fetch(`/api/overlay?assessmentNumber=${selectedProperty.PropertyNo}`)
+      ]);
 
-    const queryParams = new URLSearchParams({
-      data: JSON.stringify(propertyData)
-    });
-    
-    router.push(`/property?${queryParams.toString()}`);
+      if (!zonesResponse.ok || !overlaysResponse.ok) {
+        throw new Error('Failed to fetch property details');
+      }
+
+      const [zones, overlays] = await Promise.all([
+        zonesResponse.json(),
+        overlaysResponse.json()
+      ]);
+
+      const propertyData = {
+        Description: selectedProperty.Description,
+        PropertyNo: selectedProperty.PropertyNo,
+        Property_ID: selectedProperty.Property_ID,
+        StreetNumber: selectedProperty.StreetNumber,
+        StreetName: selectedProperty.StreetName,
+        Suburb: selectedProperty.Suburb,
+        State: selectedProperty.State,
+        Postcode: selectedProperty.Postcode,
+        PropertyType: selectedProperty.PropertyType,
+        Address: selectedProperty.Address,
+        LandOwnershipType: selectedProperty.LandOwnershipType,
+        CrownAllotmentNo: selectedProperty.CrownAllotmentNo,
+        SectionNo: selectedProperty.SectionNo,
+        ParishName: selectedProperty.ParishName,
+        MunicipalDistrict: selectedProperty.MunicipalDistrict,
+        LP_PS: selectedProperty.LP_PS,
+        PlanNo: selectedProperty.PlanNo,
+        Volume: selectedProperty.Volume,
+        Folio: selectedProperty.Folio,
+        AreaOfNewBuildingWork: selectedProperty.AreaOfNewBuildingWork,
+        Termites: selectedProperty.Termites,
+        FloodProne: selectedProperty.FloodProne,
+        BushfireProne: selectedProperty.BushfireProne,
+        DesignatedLand: selectedProperty.DesignatedLand,
+        AlpineArea: selectedProperty.AlpineArea,
+        DeclaredRoad: selectedProperty.DeclaredRoad,
+        Country: selectedProperty.Country,
+        AllotmentArea: selectedProperty.AllotmentArea,
+        LotNo: selectedProperty.LotNo,
+        PlanningPermitNo: selectedProperty.PlanningPermitNo,
+        PlanningPermitDate: selectedProperty.PlanningPermitDate,
+        MelwayRef: selectedProperty.MelwayRef,
+        BushfireAttackLevel: selectedProperty.BushfireAttackLevel,
+        Locality: selectedProperty.Locality,
+        County: selectedProperty.County,
+        Zonning: selectedProperty.Zonning,
+        SmallLot: selectedProperty.SmallLot,
+        SiteSlope: selectedProperty.SiteSlope,
+        Precinct: selectedProperty.Precinct,
+        GFA: selectedProperty.GFA,
+        SiteCover: selectedProperty.SiteCover,
+        SiteDimensionLength: selectedProperty.SiteDimensionLength,
+        Ward: selectedProperty.Ward,
+        Storeys: selectedProperty.Storeys,
+        SiteDimensionWidth: selectedProperty.SiteDimensionWidth,
+        NeighbourhoodPlan: selectedProperty.NeighbourhoodPlan,
+        ReferralTriggers: selectedProperty.ReferralTriggers,
+        SnowFall: selectedProperty.SnowFall,
+        SeweredArea: selectedProperty.SeweredArea,
+        StormwaterDischargePoint: selectedProperty.StormwaterDischargePoint,
+        UncontrolledOverlandDrainage: selectedProperty.UncontrolledOverlandDrainage,
+        Proposed: selectedProperty.Proposed,
+        ExistingDwelling: selectedProperty.ExistingDwelling,
+        UnitNumber: selectedProperty.UnitNumber,
+        DetachedStatus: selectedProperty.DetachedStatus,
+        StandardParcelIdentifier: selectedProperty.StandardParcelIdentifier,
+        ShopNo: selectedProperty.ShopNo,
+        Longitude: selectedProperty.Longitude,
+        Latitude: selectedProperty.Latitude,
+        ExistingUse: selectedProperty.ExistingUse,
+        PropertyCode: selectedProperty.PropertyCode,
+        StreetNumber2: selectedProperty.StreetNumber2,
+        StreetType: selectedProperty.StreetType,
+        ComplexUnitType: selectedProperty.ComplexUnitType,
+        ComplexLevelType: selectedProperty.ComplexLevelType,
+        ComplexLevelNumber: selectedProperty.ComplexLevelNumber,
+        ComplexUnitIdentifier: selectedProperty.ComplexUnitIdentifier,
+        WKID: selectedProperty.WKID,
+        CadastralID: selectedProperty.CadastralID,
+        LotType: selectedProperty.LotType,
+        StreetSuffix: selectedProperty.StreetSuffix,
+        GurasID: selectedProperty.GurasID,
+        PropertySize: selectedProperty.PropertySize
+      };
+
+      // Save the search (cookies will be automatically sent)
+      const response = await fetch('/api/search/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          propertyData,
+          zones,
+          overlays
+        }),
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          setError('Please log in to continue');
+          setIsContinueLoading(false);
+          return;
+        }
+        throw new Error('Failed to save search');
+      }
+
+      const { searchId, propertyDetailId } = await response.json();
+
+      // Navigate to property page with search ID and property detail ID
+      const queryParams = new URLSearchParams();
+      queryParams.set('data', JSON.stringify({
+        ...propertyData,
+        SearchId: searchId
+      }));
+      queryParams.set('searchId', searchId.toString());
+      queryParams.set('propertyDetailId', propertyDetailId.toString());
+      
+      router.push(`/property?${queryParams.toString()}`);
+    } catch (error) {
+      console.error('Error saving search:', error);
+      setError('Failed to save search');
+      setIsContinueLoading(false);
+    }
   };
 
   return (
@@ -253,7 +361,7 @@ export default function Search() {
                   <div className="grid grid-cols-2 gap-x-8 gap-y-4">
                     <div>
                       <div className="text-sm text-gray-500">Assessment Number</div>
-                      <div className="font-medium">{selectedProperty.Assessment_Number}</div>
+                      <div className="font-medium">{selectedProperty.PropertyNo}</div>
                     </div>
                     <div>
                       <div className="text-sm text-gray-500">Lot Number</div>

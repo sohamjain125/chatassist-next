@@ -43,9 +43,9 @@ async function getAuthToken() {
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const assessmentNumber = searchParams.get('assessmentNumber');
+    const PropertyNo = searchParams.get('assessmentNumber');
 
-    if (!assessmentNumber) {
+    if (!PropertyNo) {
       return NextResponse.json({ error: 'Assessment number is required' }, { status: 400 });
     }
 
@@ -53,7 +53,7 @@ export async function GET(request: Request) {
     const token = await getAuthToken();
 
     // Make the property details request with the token
-    const response = await fetch(`${BASE_URL}/Property/${assessmentNumber}`, {
+    const response = await fetch(`${BASE_URL}/Property/${PropertyNo}`, {
       headers: {
         'Accept': 'application/json',
         'Authorization': `Bearer ${token}`
@@ -61,6 +61,12 @@ export async function GET(request: Request) {
     });
 
     if (!response.ok) {
+      if (response.status === 404) {
+        return NextResponse.json(
+          { success: false, error: 'Property not found' },
+          { status: 404 }
+        );
+      }
       throw new Error(`API responded with status: ${response.status}`);
     }
 

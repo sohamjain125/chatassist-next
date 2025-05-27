@@ -42,8 +42,8 @@ export async function POST(request: Request) {
     // Get the user's current password from the database
     const pool = await getConnection();
     const result = await pool.request()
-      .input('id', sql.Int, user.id)
-      .query('SELECT password FROM Users WHERE id = @id');
+      .input('UserId', sql.Int, user.UserId)
+      .query('SELECT password FROM Users WHERE UserId = @UserId');
 
     const dbUser = result.recordset[0];
     if (!dbUser) {
@@ -67,9 +67,9 @@ export async function POST(request: Request) {
 
     // Update the password in the database
     await pool.request()
-      .input('id', sql.Int, user.id)
+      .input('UserId', sql.Int, user.UserId)
       .input('password', sql.NVarChar, hashedPassword)
-      .query('UPDATE Users SET password = @password WHERE id = @id');
+      .query('UPDATE Users SET password = @password WHERE UserId = @UserId');
 
     return NextResponse.json({ success: true });
   } catch (err: any) {

@@ -58,9 +58,9 @@ async function getAuthToken() {
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const assessmentNumber = searchParams.get('assessmentNumber');
+    const PropertyNo = searchParams.get('assessmentNumber');
 
-    if (!assessmentNumber) {
+    if (!PropertyNo) {
       return NextResponse.json(
         { error: 'Assessment number is required' },
         { status: 400 }
@@ -73,8 +73,8 @@ export async function GET(request: Request) {
       throw new Error('Failed to get authentication token');
     }
 
-    console.log('Fetching overlays for assessment number:', assessmentNumber);
-    const response = await fetch(`${BASE_URL}/Overlay/${assessmentNumber}`, {
+    console.log('Fetching overlays for assessment number:', PropertyNo);
+    const response = await fetch(`${BASE_URL}/Overlay/${PropertyNo}`, {
       headers: {
         'Accept': 'application/json',
         'Authorization': `Bearer ${token}`
@@ -82,13 +82,12 @@ export async function GET(request: Request) {
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Overlay API response error:', {
-        status: response.status,
-        statusText: response.statusText,
-        body: errorText,
-        url: `${BASE_URL}/Overlay/${assessmentNumber}`
-      });
+      if (response.status === 404) {
+        return NextResponse.json(
+          { success: false, error: 'No overlays found for this property' },
+          { status: 404 }
+        );
+      }
       throw new Error(`API responded with status: ${response.status} - ${response.statusText}`);
     }
 
@@ -103,7 +102,7 @@ export async function GET(request: Request) {
     // Log successful response
     console.log('Successfully fetched overlays:', {
       count: overlays.length,
-      assessmentNumber
+      assessmentNumber: PropertyNo
     });
 
     return NextResponse.json(overlays);

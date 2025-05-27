@@ -1,6 +1,8 @@
 export interface PropertyData {
+  PropertyDetailId: number;
+  SearchId: number;
     Description: string;
-    Assessment_Number: string;
+    PropertyNo: string;
     Property_ID: string;
     StreetNumber: string;
     StreetName: string;
@@ -46,7 +48,6 @@ export interface PropertyData {
     SiteDimensionWidth: string;
     NeighbourhoodPlan: string;
     ReferralTriggers: string;
-    PropertyNo: string;
     SnowFall: string;
     SeweredArea: string;
     StormwaterDischargePoint: string;
@@ -103,12 +104,12 @@ export interface PropertyData {
 
   export interface PropertySuggestion {
     Address: string;
-    Assessment_Number: string;
+    PropertyNo: string;
   }
   
   export interface PropertyDetails {
     Address: string;
-    Assessment_Number: string;
+    PropertyNo: string;
     Latitude: number;
     Longitude: number;
     StreetNumber: string;
@@ -121,6 +122,70 @@ export interface PropertyData {
     PlanNo: string;
     PFI: string;
     Property_ID: string;
+    Description: string;
+    PropertyType: string;
+    LandOwnershipType: string;
+    CrownAllotmentNo: string;
+    SectionNo: string;
+    ParishName: string;
+    MunicipalDistrict: string;
+    LP_PS: string;
+    PlanningPermitNo: string;
+    PlanningPermitDate: string;
+    MelwayRef: string;
+    BushfireAttackLevel: string;
+    Locality: string;
+    County: string;
+    Zonning: string;
+    SmallLot: string;
+    SiteSlope: string;
+    Precinct: string;
+    GFA: string;
+    SiteCover: string;
+    SiteDimensionLength: string;
+    Ward: string;
+    Storeys: string;
+    SiteDimensionWidth: string;
+    NeighbourhoodPlan: string;
+    ReferralTriggers: string;
+    SnowFall: string;
+    SeweredArea: string;
+    StormwaterDischargePoint: string;
+    UncontrolledOverlandDrainage: string;
+    Proposed: string;
+    ExistingDwelling: string;
+    UnitNumber: string;
+    DetachedStatus: string;
+    StandardParcelIdentifier: string;
+    ShopNo: string;
+    ExistingUse: string;
+    PropertyCode: string;
+    StreetNumber2: string;
+    StreetType: string;
+    ComplexUnitType: string;
+    ComplexLevelType: string;
+    ComplexLevelNumber: string;
+    ComplexUnitIdentifier: string;
+    WKID: string;
+    CadastralID: string;
+    LotType: string;
+    StreetSuffix: string;
+    GurasID: string;
+    PropertySize: string;
+    Volume: string;
+    Folio: string;
+    AreaOfNewBuildingWork: string;
+    Termites: string;
+    FloodProne: string;
+    BushfireProne: string;
+    DesignatedLand: string;
+    AlpineArea: string;
+    DeclaredRoad: string;
+    Country: string;
+
+    
+    
+
   }
   export type HistoryItem = {
     address: string;
