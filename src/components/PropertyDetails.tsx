@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { MapPin, MessageSquare, Menu, Loader2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import Map from '@/components/Map';
@@ -32,61 +32,75 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
   const router = useRouter();
   const searchParams = useSearchParams();
   const isMounted = useRef(false);
+  const fetchTimeout = useRef<NodeJS.Timeout>();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (isMounted.current) return;
-      isMounted.current = true;
+  const fetchPropertyData = useCallback(async (PropertyNo: string) => {
+    if (!PropertyNo) return;
+    
+    try {
+      const [zonesResponse, overlaysResponse] = await Promise.all([
+        fetch(`/api/zone?assessmentNumber=${PropertyNo}`),
+        fetch(`/api/overlay?assessmentNumber=${PropertyNo}`)
+      ]);
 
-      try {
-        setLoading(true);
-        setError(null);
+      if (!zonesResponse.ok || !overlaysResponse.ok) {
+        throw new Error('Failed to fetch property data');
+      }
 
-        // Get assessment number from URL data
-        const data = searchParams?.get('data');
-        if (!data) {
-          throw new Error('No property data available');
-        }
+      const [zonesData, overlaysData] = await Promise.all([
+        zonesResponse.json(),
+        overlaysResponse.json()
+      ]);
 
-        const parsedData = JSON.parse(data) as { PropertyNo: string };
-        const PropertyNo = parsedData.PropertyNo;
-        
-        // Fetch all data in parallel
-        const [propertyResponse, zonesResponse, overlaysResponse] = await Promise.all([
-          fetch(`/api/property-details?assessmentNumber=${PropertyNo}`),
-          fetch(`/api/zone?assessmentNumber=${PropertyNo}`),
-          fetch(`/api/overlay?assessmentNumber=${PropertyNo}`)
-        ]);
-
-        const [propertyData, zonesData, overlaysData] = await Promise.all([
-          propertyResponse.json(),
-          zonesResponse.json(),
-          overlaysResponse.json()
-        ]);
-
-        // Check if property data is valid
-        if (!propertyData || !propertyData.PropertyNo) {
-          throw new Error('Invalid property data received');
-        }
-
-        setPropertyDetails(propertyData);
+      if (isMounted.current) {
         setZones(Array.isArray(zonesData) ? zonesData : []);
         setOverlays(Array.isArray(overlaysData) ? overlaysData : []);
-
-      } catch (err) {
-        console.error('Error fetching property details:', err);
+      }
+    } catch (err) {
+      console.error('Error fetching property data:', err);
+      if (isMounted.current) {
         setError(err instanceof Error ? err.message : 'Failed to fetch property details');
-      } finally {
+      }
+    } finally {
+      if (isMounted.current) {
         setLoading(false);
       }
-    };
+    }
+  }, []);
 
-    fetchData();
+  useEffect(() => {
+    isMounted.current = true;
+    setLoading(true);
+    setError(null);
+
+    try {
+      setPropertyDetails(propertyData);
+      
+      // Clear any existing timeout
+      if (fetchTimeout.current) {
+        clearTimeout(fetchTimeout.current);
+      }
+
+      // Add a small delay to prevent rapid re-fetching
+      fetchTimeout.current = setTimeout(() => {
+        if (propertyData.PropertyNo) {
+          fetchPropertyData(propertyData.PropertyNo);
+        }
+      }, 100);
+
+    } catch (err) {
+      console.error('Error setting property data:', err);
+      setError('Invalid property data format');
+      setLoading(false);
+    }
 
     return () => {
       isMounted.current = false;
+      if (fetchTimeout.current) {
+        clearTimeout(fetchTimeout.current);
+      }
     };
-  }, [searchParams]);
+  }, [propertyData, fetchPropertyData]);
 
   const SidebarToggle = () => {
     const { toggleSidebar, state } = useSidebar();
@@ -123,11 +137,8 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
       return;
     }
     setIsAiLoading(true);
-    const searchParams = new URLSearchParams({
-      searchId: propertyData.SearchId.toString(),
-      message: `Tell me about ${propertyData.Address}`
-    });
-    router.push(`/chat?${searchParams.toString()}`);
+    
+    router.push(`/chat`);
   };
 
   if (error) {

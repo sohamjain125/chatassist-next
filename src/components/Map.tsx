@@ -69,7 +69,7 @@ export default function Map({
   className = '',
   height = '',
   initialAddress = '',
-  readOnly = false,
+  readOnly = true,
   buildingOutline,
   propertyPfi,
   tilt = 45

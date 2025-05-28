@@ -47,26 +47,27 @@ export default function PropertyPage() {
 
 
   useEffect(() => {
-    if (!searchParams) {
-      console.log('No search parameters available');
-      setError('No search parameters available');
-      return;
-    }
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
 
-    const data = searchParams.get('data');
-    if (!data) {
-      console.log('No property data provided');
-      setError('No property data provided');
-      return;
-    }
+      try {
+        const data = searchParams?.get('data');
+        if (!data) {
+          throw new Error('No property data available');
+        }
 
-    try {
-      const parsedData = JSON.parse(data);
-      setPropertyData(parsedData);
-    } catch (err) {
-      console.error('Error parsing property data:', err);
-      setError('Error loading property data');
-    }
+        const parsedData = JSON.parse(data) as PropertyData;
+        setPropertyData(parsedData);
+      } catch (err) {
+        console.error('Error parsing property data:', err);
+        setError('Error loading property data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, [searchParams]);
 
   if (error) {

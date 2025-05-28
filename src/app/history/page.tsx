@@ -19,7 +19,6 @@ interface Search {
   Address: string;
   CreatedAt: string;
   PropertyNo: number;
-  PropertyDetailId: number;
 }
 
 export default function HistoryPage() {
@@ -61,7 +60,8 @@ export default function HistoryPage() {
   const handleSearchClick = (search: Search) => {
     const searchParams = new URLSearchParams({
       data: JSON.stringify({
-        PropertyNo: search.PropertyNo || search.PropertyDetailId.toString()
+        PropertyNo: search.PropertyNo.toString(),
+        SearchId: search.SearchId.toString()
       })
     });
     router.push(`/property?${searchParams.toString()}`);

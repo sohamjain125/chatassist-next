@@ -348,7 +348,7 @@ export default function Search() {
                   <Map
                     center={{ lat: selectedProperty.Latitude, lng: selectedProperty.Longitude }}
                     propertyPfi={selectedProperty.Property_ID}
-                    zoom={15}
+                    zoom={20}
                     showSearch={false}
                    
                     height="400px"
