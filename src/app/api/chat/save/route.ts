@@ -9,7 +9,10 @@ export async function POST(req: Request) {
     const cookieStore = await cookies();
     const token = cookieStore.get('auth_token')?.value;
     
+    console.log('Received save chat request');
+    
     if (!token) {
+      console.log('No auth token found');
       return NextResponse.json(
         { success: false, error: 'Authentication required' },
         { status: 401 }
@@ -18,6 +21,7 @@ export async function POST(req: Request) {
 
     const user = await verifyToken(token);
     if (!user) {
+      console.log('Invalid token');
       return NextResponse.json(
         { success: false, error: 'Invalid token' },
         { status: 401 }
@@ -25,6 +29,7 @@ export async function POST(req: Request) {
     }
 
     const { searchId, sessionId, messages } = await req.json();
+    console.log('Received data:', { searchId, sessionId, messageCount: messages?.length });
 
     // Get database connection
     const pool = await getConnection();
@@ -47,6 +52,7 @@ export async function POST(req: Request) {
       `);
 
     const chatSessionId = sessionResult.recordset[0].ChatSessionId;
+    console.log('Chat session created/retrieved:', chatSessionId);
 
     // Insert messages
     for (const msg of messages) {
@@ -76,6 +82,7 @@ export async function POST(req: Request) {
 
     // Commit the transaction
     await transaction.commit();
+    console.log('Chat saved successfully');
 
     return NextResponse.json({ 
       success: true, 

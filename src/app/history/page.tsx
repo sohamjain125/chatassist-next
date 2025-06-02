@@ -62,7 +62,8 @@ export default function HistoryPage() {
       data: JSON.stringify({
         PropertyNo: search.PropertyNo.toString(),
         SearchId: search.SearchId.toString()
-      })
+      }),
+      fromHistory: 'true'
     });
     router.push(`/property?${searchParams.toString()}`);
   };

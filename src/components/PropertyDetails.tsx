@@ -138,7 +138,7 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
     }
     setIsAiLoading(true);
     
-    router.push(`/chat`);
+    router.push(`/chat?searchId=${propertyData.SearchId}`);
   };
 
   if (error) {

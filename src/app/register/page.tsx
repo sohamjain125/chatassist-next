@@ -44,7 +44,7 @@ export default function Register() {
       console.log(data);
       if (data.success) {
         // Set cookie instead of localStorage
-        document.cookie = `token=${data.token}; path=/`;
+        document.cookie = `auth_token=${data.token}; path=/`;
         toast({
           title: 'Registration successful',
           description: 'Welcome to ChatAssist!',

@@ -23,6 +23,7 @@ export default function Chatbot() {
   const searchParams = useSearchParams();
   const initialMessage = searchParams?.get('message') ?? null;
   const searchId = searchParams?.get('searchId');
+  const fromHistory = searchParams?.get('fromHistory') === 'true';
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -30,12 +31,12 @@ export default function Chatbot() {
   const sessionId = useRef<string>(`${searchId}-${Date.now()}`);
   const { toast } = useToast();
 
-  // Load chat history if searchId is provided
+  // Load chat history only if coming from history page
   useEffect(() => {
-    if (searchId) {
+    if (fromHistory && searchId) {
       loadChatHistory();
     } else {
-      // Add initial welcome message if no history
+      // Start fresh session with welcome message
       const welcomeMessage: MessageType = {
         id: "welcome",
         content: "Hello! I'm your property assistant. Ask me anything about real estate, property values, or how to use the Address Explorer Hub.",
@@ -54,7 +55,7 @@ export default function Chatbot() {
         setMessages([welcomeMessage]);
       }
     }
-  }, [searchId, initialMessage]);
+  }, [searchId, initialMessage, fromHistory]);
 
   const loadChatHistory = async () => {
     try {
@@ -84,7 +85,14 @@ export default function Chatbot() {
   };
 
   const saveChat = async (newMessages: MessageType[]) => {
-    if (!searchId) return;
+    if (!searchId) {
+      console.log('No searchId available, chat will not be saved');
+      return;
+    }
+
+    console.log('Attempting to save chat with searchId:', searchId);
+    console.log('SessionId:', sessionId.current);
+    console.log('Messages to save:', newMessages);
 
     try {
       const response = await fetch('/api/chat/save', {
@@ -103,6 +111,8 @@ export default function Chatbot() {
       });
       
       const data = await response.json();
+      console.log('Save chat response:', data);
+      
       if (data.success && data.sessionId) {
         sessionId.current = data.sessionId;
       }

@@ -242,7 +242,7 @@ export default function Search() {
       // Navigate to property page with search ID and property detail ID
       const queryParams = new URLSearchParams();
       queryParams.set('data', JSON.stringify({
-        ...propertyData,
+        PropertyNo: selectedProperty.PropertyNo,
         SearchId: searchId
       }));
       queryParams.set('searchId', searchId.toString());
