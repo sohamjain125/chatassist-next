@@ -90,10 +90,6 @@ export default function Chatbot() {
       return;
     }
 
-    console.log('Attempting to save chat with searchId:', searchId);
-    console.log('SessionId:', sessionId.current);
-    console.log('Messages to save:', newMessages);
-
     try {
       const response = await fetch('/api/chat/save', {
         method: 'POST',
