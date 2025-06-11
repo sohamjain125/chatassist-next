@@ -268,8 +268,8 @@ export default function Search() {
           </div>
         </div>
       )}
-      <div className="container mx-auto px-4 py-4">
-        <div className="max-w-4xl mx-auto">
+      <div className=" mx-auto px-4 py-4">
+        <div className="mx-auto">
           <h1 className="text-3xl font-bold mb-4">Find answers for your property</h1>
           <p className="text-gray-600 mb-4">
             Adress Hub's technology is taking the property industry forward with instant analysis for critical planning questions. Try it for free by entering an address below.

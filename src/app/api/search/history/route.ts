@@ -29,7 +29,7 @@ export async function GET() {
       .query(`
         SELECT 
           s.SearchId,
-          s.Address,
+          pd.Address,
           s.CreatedAt,
           pd.PropertyDetailId,
           pd.PropertyNo

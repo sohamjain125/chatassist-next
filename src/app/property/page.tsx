@@ -89,7 +89,7 @@ export default function PropertyPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-4 max-w-full md:max-w-3xl lg:max-w-5xl xl:max-w-7xl h-[60vh] md:h-[70vh] lg:h-[80vh]">
+    <div>
       <PropertyDetails propertyData={propertyData} />
     </div>
   );
