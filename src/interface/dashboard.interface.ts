@@ -1,13 +1,14 @@
 export interface HistoryItem {
-    address: string;
-    suburb: string;
-    state: string;
-    postcode: string;
-    timestamp: string;
+    SearchId: number;
+    Address: string;
+    CreatedAt: string;
+    PropertyDetailId: number;
+    PropertyNo: string;
+    ChatSessionId?: string;
     [key: string]: any;
-  }
+}
   
-  export interface UserInfo {
+export interface UserInfo {
     firstname: string;
     lastname: string;
-  }
+}

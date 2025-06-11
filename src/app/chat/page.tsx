@@ -10,14 +10,6 @@ import { Separator } from "@/components/ui/separator";
 import { sendMessageToLex } from "@/services/lexService";
 import { useToast } from "@/hooks/use-toast";
 import { ImageResponseCard } from "@aws-sdk/client-lex-runtime-v2";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
 
 type MessageType = {
   id: string;
@@ -40,12 +32,18 @@ export default function Chatbot() {
   const currentSessionId = useRef<string>(sessionId || `${searchId}-${Date.now()}`);
   const { toast } = useToast();
 
-  // Load chat history or start new chat
+  // Load chat history or start fresh session
   useEffect(() => {
     if (sessionId) {
       // Load existing chat session
       loadChatSession(sessionId);
     } else {
+      // Create new session ID and update URL
+      const newSessionId = `${searchId}-${Date.now()}`;
+      const newUrl = `/chat?searchId=${searchId}&sessionId=${newSessionId}`;
+      window.history.replaceState({}, '', newUrl);
+      currentSessionId.current = newSessionId;
+
       // Start fresh session with welcome message
       const welcomeMessage: MessageType = {
         id: "welcome",

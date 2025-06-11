@@ -18,8 +18,6 @@ export default function Dashboard() {
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
 
-  // Load search history on component mount
-
   useEffect(() => {
     // Check for token on client side
     const token = document.cookie.split('; ').find(row => row.startsWith('auth_token='))?.split('=')[1];
@@ -45,12 +43,31 @@ export default function Dashboard() {
         .catch(err => {
           console.error('Error fetching user info:', err);
         });
+
+      // Fetch recent searches
+      fetch('/api/search/history', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            // Sort searches by timestamp in descending order (latest first)
+            const sortedSearches = data.searches.sort((a: HistoryItem, b: HistoryItem) => 
+              new Date(b.CreatedAt).getTime() - new Date(a.CreatedAt).getTime()
+            );
+            setRecentSearches(sortedSearches);
+          }
+        })
+        .catch(err => {
+          console.error('Error fetching search history:', err);
+        });
     }
   }, [router]);
 
-
-  // Format date function
-  const formatDate = (dateString: string) => {
+  // Format date and time function
+  const formatDateTime = (dateString: string) => {
     if (!dateString) return '';
 
     try {
@@ -58,10 +75,60 @@ export default function Dashboard() {
       return new Intl.DateTimeFormat('en-US', {
         year: 'numeric',
         month: 'short',
-        day: 'numeric'
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
       }).format(date);
     } catch (e) {
       return dateString;
+    }
+  };
+
+  // Parse address components
+  const parseAddress = (address: string) => {
+    if (!address) {
+      return {
+        street: '',
+        suburb: '',
+        state: '',
+        postcode: ''
+      };
+    }
+
+    try {
+      const parts = address.split(',').map(part => part.trim());
+      
+      if (parts.length >= 3) {
+        const [street, suburb, statePostcode] = parts;
+        const statePostcodeParts = statePostcode.split(' ').filter(Boolean);
+        
+        if (statePostcodeParts.length >= 2) {
+          const state = statePostcodeParts[0];
+          const postcode = statePostcodeParts[1];
+          return {
+            street,
+            suburb,
+            state,
+            postcode
+          };
+        }
+      }
+      
+      // Fallback for addresses that don't match the expected format
+      return {
+        street: address,
+        suburb: '',
+        state: '',
+        postcode: ''
+      };
+    } catch (error) {
+      console.error('Error parsing address:', error);
+      return {
+        street: address,
+        suburb: '',
+        state: '',
+        postcode: ''
+      };
     }
   };
 
@@ -159,61 +226,98 @@ export default function Dashboard() {
       <div>
         <Card>
           <CardHeader>
-            <CardTitle className="text-xl">Recent searches</CardTitle>
+            <CardTitle className="text-xl">Recent Searches</CardTitle>
             <CardDescription>
               Your recently searched properties
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
+            <div className="space-y-4">
               {recentSearches.length > 0 ? (
-                recentSearches.map((search, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-muted/40 rounded-md hover:bg-muted/60 transition-colors cursor-pointer">
-                    <div className="flex items-center gap-3">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 text-primary">
-                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
-                        <circle cx="12" cy="10" r="3"></circle>
-                      </svg>
-                      <div>
-                        <div className="font-medium">{search.address}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {search.suburb && `${search.suburb}, `}
-                          {search.state && `${search.state} `}
-                          {search.postcode && search.postcode}
-                          {search.timestamp && ` • Searched on ${formatDate(search.timestamp)}`}
+                recentSearches.map((search, index) => {
+                  const addressParts = parseAddress(search.Address);
+                  return (
+                    <div 
+                      key={index} 
+                      className="flex items-center justify-between p-4 bg-muted/40 rounded-lg hover:bg-muted/60 transition-colors"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                          <FontAwesomeIcon
+                            icon={faLocationDot}
+                            className="h-5 w-5 text-primary"
+                          />
+                        </div>
+                        <div>
+                          <div className="font-medium text-base">{addressParts.street}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {addressParts.suburb && `${addressParts.suburb}, `}
+                            {addressParts.state && `${addressParts.state} `}
+                            {addressParts.postcode && addressParts.postcode}
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            Searched on {formatDateTime(search.CreatedAt)}
+                          </div>
                         </div>
                       </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const propertyData = {
+                              SearchId: search.SearchId,
+                              Address: search.Address,
+                              PropertyDetailId: search.PropertyDetailId,
+                              PropertyNo: search.PropertyNo,
+                              CreatedAt: search.CreatedAt,
+                              PlanNo: search.PlanNo || '',
+                              Suburb: search.Suburb || '',
+                              State: search.State || '',
+                              Postcode: search.Postcode || '',
+                              LotNo: search.LotNo || '',
+                              SectionNo: search.SectionNo || '',
+                              Volume: search.Volume || '',
+                              Folio: search.Folio || ''
+                            };
+                            console.log('Navigating to history with data:', propertyData);
+                            const url = `/history?data=${encodeURIComponent(JSON.stringify(propertyData))}`;
+                            console.log('URL:', url);
+                            router.push(url);
+                          }}
+                        >
+                          View Details
+                        </Button>
+                      </div>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => router.push(`/property?data=${encodeURIComponent(JSON.stringify(search))}`)}
-                    >
-                      View details
-                    </Button>
-                  </div>
-                ))
+                  );
+                })
               ) : (
-                <div className="text-center py-6 text-muted-foreground">
-                  <p>No recent searches found</p>
+                <div className="text-center py-8 text-muted-foreground">
+                  <div className="h-16 w-16 mx-auto mb-4 rounded-full bg-muted/50 flex items-center justify-center">
+                    <FontAwesomeIcon
+                      icon={faLocationDot}
+                      className="h-8 w-8 text-muted-foreground"
+                    />
+                  </div>
+                  <p className="text-lg mb-2">No recent searches found</p>
+                  <p className="text-sm mb-4">Start exploring properties by searching for an address</p>
                   <Button
-                    variant="outline"
-                    size="sm"
-                    className="mt-2 hover:text-white transition-colors"
+                    variant="default"
                     onClick={() => router.push('/search')}
                   >
-                    Search properties
+                    Search Properties
                   </Button>
                 </div>
               )}
 
               {recentSearches.length > 0 && (
-                <div className="text-center mt-4">
+                <div className="text-center mt-6">
                   <Button
                     variant="outline"
                     onClick={() => router.push('/history')}
                   >
-                    View all searches
+                    View All Searches
                   </Button>
                 </div>
               )}
