@@ -185,7 +185,7 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 p-4">
           {/* Left Section */}
           <div className="lg:col-span-5">
-            <Card className="p-4 h-[calc(100vh-8rem)]">
+            <Card className="p-4 h-[calc(100vh-14rem)]">
               <div className="flex flex-col h-full">
                 <div className="h-[300px] shrink-0">
                   <Map
