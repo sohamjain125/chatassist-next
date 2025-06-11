@@ -14,9 +14,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Overlay, PropertyData, Zone } from '@/interface/property.interface';
 import { toast } from '@/components/ui/use-toast';
-
-
-
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 interface PropertyDetailsProps {
   propertyData: PropertyData;
@@ -33,6 +31,8 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
   const searchParams = useSearchParams();
   const isMounted = useRef(false);
   const fetchTimeout = useRef<NodeJS.Timeout>();
+  const [showSessionDialog, setShowSessionDialog] = useState(false);
+  const [previousSessions, setPreviousSessions] = useState<any[]>([]);
 
   const fetchPropertyData = useCallback(async (PropertyNo: string) => {
     if (!PropertyNo) return;
@@ -127,7 +127,7 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
     );
   };
 
-  const handleAiClick = () => {
+  const handleAiClick = async () => {
     if (!propertyData.SearchId) {
       toast({
         title: "Error",
@@ -138,7 +138,35 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
     }
     setIsAiLoading(true);
     
-    router.push(`/chat?searchId=${propertyData.SearchId}`);
+    try {
+      // Check for previous sessions
+      const response = await fetch(`/api/chat/history?searchId=${propertyData.SearchId}`);
+      const data = await response.json();
+      
+      if (data.success && data.sessions && data.sessions.length > 0) {
+        // Get only the latest ended session
+        const latestEndedSession = data.sessions.find((session: any) => session.Status === 'ended');
+        
+        if (latestEndedSession) {
+          // Show dialog with only the latest ended session
+          setShowSessionDialog(true);
+          setPreviousSessions([latestEndedSession]);
+          setIsAiLoading(false);
+          return;
+        }
+      }
+      
+      // If no previous sessions or no ended sessions, redirect to new chat
+      router.push(`/chat?searchId=${propertyData.SearchId}`);
+    } catch (error) {
+      console.error('Error checking chat history:', error);
+      toast({
+        title: "Error",
+        description: "Failed to check chat history",
+        variant: "destructive",
+      });
+      setIsAiLoading(false);
+    }
   };
 
   if (error) {
@@ -167,6 +195,40 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
       <StickyHeader>
         <SidebarToggle />
       </StickyHeader>
+      
+      <Dialog open={showSessionDialog} onOpenChange={setShowSessionDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Previous Chat Session</DialogTitle>
+            <DialogDescription>
+              Would you like to continue your previous chat or start a new one?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {previousSessions.map((session) => (
+              <div
+                key={session.LexSessionId}
+                className="p-4 border rounded-lg cursor-pointer hover:bg-muted"
+                onClick={() => router.push(`/chat?searchId=${propertyData.SearchId}&sessionId=${session.LexSessionId}`)}
+              >
+                <div className="font-medium">
+                  Chat from {new Date(session.CreatedAt).toLocaleString()}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {session.firstMessage} ... {session.lastMessage}
+                </div>
+              </div>
+            ))}
+            <Button
+              className="w-full"
+              onClick={() => router.push(`/chat?searchId=${propertyData.SearchId}`)}
+            >
+              Start New Chat
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
       <div className="flex-1 pt-6 pb-8">
         <div className="top-[72px] z-10 bg-background">
           <Card className="p-4">

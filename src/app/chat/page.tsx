@@ -31,20 +31,20 @@ export default function Chatbot() {
   const searchParams = useSearchParams();
   const initialMessage = searchParams?.get('message') ?? null;
   const searchId = searchParams?.get('searchId');
+  const sessionId = searchParams?.get('sessionId');
   const fromHistory = searchParams?.get('fromHistory') === 'true';
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [isTyping, setIsTyping] = useState(false);
-  const [showSessionDialog, setShowSessionDialog] = useState(false);
-  const [previousSessions, setPreviousSessions] = useState<any[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const sessionId = useRef<string>(`${searchId}-${Date.now()}`);
+  const currentSessionId = useRef<string>(sessionId || `${searchId}-${Date.now()}`);
   const { toast } = useToast();
 
-  // Load chat history or check for previous sessions
+  // Load chat history or start new chat
   useEffect(() => {
-    if (searchId) {
-      checkPreviousSessions();
+    if (sessionId) {
+      // Load existing chat session
+      loadChatSession(sessionId);
     } else {
       // Start fresh session with welcome message
       const welcomeMessage: MessageType = {
@@ -65,47 +65,11 @@ export default function Chatbot() {
         setMessages([welcomeMessage]);
       }
     }
-  }, [searchId, initialMessage]);
+  }, [searchId, initialMessage, sessionId]);
 
-  const checkPreviousSessions = async () => {
+  const loadChatSession = async (sessionId: string) => {
     try {
-      const response = await fetch(`/api/chat/history?searchId=${searchId}`);
-      const data = await response.json();
-      
-      if (data.success) {
-        if (data.sessions && data.sessions.length > 0) {
-          setPreviousSessions(data.sessions);
-          setShowSessionDialog(true);
-        } else {
-          // No previous sessions, start new chat
-          startNewChat();
-        }
-      }
-    } catch (error) {
-      console.error('Error checking previous sessions:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load chat history",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const startNewChat = () => {
-    sessionId.current = `${searchId}-${Date.now()}`;
-    const welcomeMessage: MessageType = {
-      id: "welcome",
-      content: "Hello! I'm your property assistant. Ask me anything about real estate, property values, or how to use the Address Explorer Hub.",
-      sender: "bot",
-      timestamp: new Date()
-    };
-    setMessages([welcomeMessage]);
-    setShowSessionDialog(false);
-  };
-
-  const continuePreviousChat = async (session: any) => {
-    try {
-      const response = await fetch(`/api/chat/history?searchId=${searchId}&sessionId=${session.LexSessionId}`);
+      const response = await fetch(`/api/chat/history?searchId=${searchId}&sessionId=${sessionId}`);
       const data = await response.json();
       
       if (data.success) {
@@ -114,8 +78,7 @@ export default function Chatbot() {
           timestamp: new Date(msg.timestamp)
         }));
         setMessages(loadedMessages);
-        sessionId.current = session.LexSessionId;
-        setShowSessionDialog(false);
+        currentSessionId.current = sessionId;
       }
     } catch (error) {
       console.error('Error loading chat history:', error);
@@ -135,7 +98,7 @@ export default function Chatbot() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          sessionId: sessionId.current
+          sessionId: currentSessionId.current
         }),
       });
       
@@ -173,7 +136,7 @@ export default function Chatbot() {
         },
         body: JSON.stringify({
           searchId,
-          sessionId: sessionId.current,
+          sessionId: currentSessionId.current,
           messages: newMessages.map(msg => ({
             ...msg,
             timestamp: msg.timestamp.toISOString()
@@ -185,7 +148,7 @@ export default function Chatbot() {
       console.log('Save chat response:', data);
       
       if (data.success && data.sessionId) {
-        sessionId.current = data.sessionId;
+        currentSessionId.current = data.sessionId;
       }
     } catch (error) {
       console.error('Error saving chat:', error);
@@ -197,14 +160,16 @@ export default function Chatbot() {
     }
   };
 
-  // Scroll to bottom when messages update
+  const scrollToBottom = () => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+  };
+
+  // Only scroll to bottom when messages change
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
 
   const handleButtonClick = async (value: string) => {
     // Add user message
@@ -221,7 +186,7 @@ export default function Chatbot() {
     
     try {
       // Send message to Lex
-      const response = await sendMessageToLex(value, sessionId.current);
+      const response = await sendMessageToLex(value, currentSessionId.current);
       
       const botMessage: MessageType = {
         id: Date.now().toString(),
@@ -251,49 +216,35 @@ export default function Chatbot() {
   };
 
   const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault(); 
-    
-    if (!input.trim()) return;
-    
-    const message = input;
-    setInput("");
-    
-    // Add user message
+    e.preventDefault();
+    if (!input.trim() || isTyping) return;
+
     const userMessage: MessageType = {
       id: Date.now().toString(),
-      content: message,
+      content: input,
       sender: "user",
       timestamp: new Date()
     };
-    
-    const newMessages = [...messages, userMessage];
-    setMessages(newMessages);
+
+    setMessages(prev => [...prev, userMessage]);
+    setInput("");
     setIsTyping(true);
-    
+
     try {
-      // Send message to Lex
-      const response = await sendMessageToLex(message, sessionId.current);
-      
+      const response = await sendMessageToLex(input, currentSessionId.current);
       const botMessage: MessageType = {
-        id: Date.now().toString(),
+        id: (Date.now() + 1).toString(),
         content: response.message,
         sender: "bot",
         timestamp: new Date(),
         responseCard: response.responseCard
       };
-      
-      const updatedMessages = [...newMessages, botMessage];
-      setMessages(updatedMessages);
-      
-      // Save chat after both messages are added
-      if (searchId) {
-        await saveChat(updatedMessages);
-      }
+      setMessages(prev => [...prev, botMessage]);
     } catch (error) {
-      console.error("Error communicating with Lex:", error);
+      console.error('Error sending message:', error);
       toast({
         title: "Error",
-        description: "Failed to get response from the assistant. Please try again.",
+        description: "Failed to send message. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -303,44 +254,6 @@ export default function Chatbot() {
 
   return (
     <div className="space-y-6">
-      <Dialog open={showSessionDialog} onOpenChange={setShowSessionDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Previous Chat Sessions</DialogTitle>
-            <DialogDescription>
-              <div className="font-bold">
-                 Would you like to continue a previous chat or start a new one?
-              </div>
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            {previousSessions.map((session) => (
-              <div
-                key={session.LexSessionId}
-                className="p-4 border rounded-lg cursor-pointer hover:bg-muted"
-                onClick={() => continuePreviousChat(session)}
-              >
-                <div className="font-medium">
-                  Chat from {new Date(session.CreatedAt).toLocaleString()}
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  {session.firstMessage} ... {session.lastMessage}
-                </div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  Status: {session.Status}
-                </div>
-              </div>
-            ))}
-            <Button
-              className="w-full"
-              onClick={startNewChat}
-            >
-              Start New Chat
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
       <Card className="border-0 h shadow-lg mt-2">
         <CardHeader className="pb-0">
           <CardTitle className="flex items-center justify-between">
@@ -365,7 +278,7 @@ export default function Chatbot() {
           <Separator className="mt-4" />
         </CardHeader>
         <CardContent>
-          <div className="h-[calc(100vh-20rem)] overflow-y-auto p-6">
+          <div className="h-[calc(100vh-20rem)] overflow-y-auto p-6" style={{ scrollBehavior: 'smooth' }}>
             <div className="space-y-6">
               {messages.map((message) => (
                 <div
@@ -433,7 +346,7 @@ export default function Chatbot() {
                   </div>
                 </div>
               )}
-              <div ref={messagesEndRef} />
+              <div ref={messagesEndRef} style={{ float: 'left', clear: 'both' }} />
             </div>
           </div>
         </CardContent>
