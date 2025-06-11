@@ -230,13 +230,23 @@ export default function Chatbot() {
     <div className="space-y-6">
       <Card className="border-0 h shadow-lg mt-2">
         <CardHeader className="pb-0">
-          <CardTitle className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-primary-foreground">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-              </svg>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-primary-foreground">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+              </div>
+              Property Assistant
             </div>
-            Property Assistant
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => window.history.back()}
+              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+            >
+              End Chat
+            </Button>
           </CardTitle>
           <CardDescription>Ask questions about properties, real estate, or using this application</CardDescription>
           <Separator className="mt-4" />
