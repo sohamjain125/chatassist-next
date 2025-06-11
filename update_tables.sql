@@ -1,10 +1,11 @@
--- Drop all foreign key constraints first
-DECLARE @sql VARCHAR(MAX) = N'';
-SELECT @sql += N'ALTER TABLE ' + QUOTENAME(OBJECT_SCHEMA_NAME(parent_object_id))
+-- Drop all foreign key constraints first using VARCHAR and EXEC()
+DECLARE @sql VARCHAR(MAX) = '';
+SELECT @sql += 'ALTER TABLE ' + QUOTENAME(OBJECT_SCHEMA_NAME(parent_object_id))
     + '.' + QUOTENAME(OBJECT_NAME(parent_object_id)) 
     + ' DROP CONSTRAINT ' + QUOTENAME(name) + ';'
 FROM sys.foreign_keys;
-EXEC sp_executesql @sql;
+
+EXEC(@sql);
 
 -- Drop existing tables if they exist (in correct order to handle foreign key constraints)
 IF OBJECT_ID('ChatMessage', 'U') IS NOT NULL DROP TABLE ChatMessage;
@@ -140,6 +141,7 @@ CREATE TABLE ChatSession (
     ChatSessionId INT IDENTITY(1,1) PRIMARY KEY,
     SearchId INT NOT NULL,
     LexSessionId VARCHAR(100) NOT NULL,
+    Status VARCHAR(20) DEFAULT 'active', -- 'active' or 'ended'
     CreatedAt DATETIME DEFAULT GETDATE(),
     UpdatedAt DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (SearchId) REFERENCES Search(SearchId)

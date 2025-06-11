@@ -19,6 +19,14 @@ interface ImageResponseCard {
   buttons: Button[];
 }
 
+export interface MessageType {
+  id: string;
+  content: string;
+  sender: "user" | "bot";
+  timestamp: Date;
+  responseCard?: ImageResponseCard;
+}
+
 export interface LexResponse {
   message: string;
   sessionId: string;
@@ -51,6 +59,33 @@ export const sendMessageToLex = async (
     };
   } catch (error) {
     console.error("Error sending message to Lex:", error);
+    throw error;
+  }
+};
+
+export const getConversationHistory = async (sessionId: string): Promise<MessageType[]> => {
+  try {
+    // Since AWS Lex doesn't provide a direct API to fetch conversation history,
+    // we'll need to store the messages in our database and retrieve them from there.
+    // This is a more reliable approach as it ensures we have access to the complete
+    // conversation history.
+    
+    const response = await fetch(`/api/chat/history?sessionId=${sessionId}`);
+    const data = await response.json();
+    
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to fetch conversation history');
+    }
+    
+    return data.messages.map((msg: any) => ({
+      id: msg.id,
+      content: msg.content,
+      sender: msg.sender,
+      timestamp: new Date(msg.timestamp),
+      responseCard: msg.responseCard
+    }));
+  } catch (error) {
+    console.error("Error fetching conversation history:", error);
     throw error;
   }
 }; 

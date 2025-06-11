@@ -25,6 +25,7 @@ export async function GET(req: Request) {
 
     const { searchParams } = new URL(req.url);
     const searchId = searchParams.get('searchId');
+    const sessionId = searchParams.get('sessionId');
 
     if (!searchId) {
       return NextResponse.json(
@@ -35,51 +36,104 @@ export async function GET(req: Request) {
 
     const pool = await getConnection();
 
-    // Get chat session and messages
-    const { recordset: sessions } = await pool.request()
-      .input('SearchId', sql.Int, searchId)
-      .query(`
-        SELECT TOP 1 ChatSessionId, LexSessionId
-        FROM ChatSession 
-        WHERE SearchId = @SearchId
-        ORDER BY CreatedAt DESC
-      `);
+    if (sessionId) {
+      // Get specific chat session and messages
+      const { recordset: sessions } = await pool.request()
+        .input('SearchId', sql.Int, searchId)
+        .input('LexSessionId', sql.NVarChar, sessionId)
+        .query(`
+          SELECT ChatSessionId, LexSessionId, Status, CreatedAt
+          FROM ChatSession 
+          WHERE SearchId = @SearchId AND LexSessionId = @LexSessionId
+        `);
 
-    if (sessions.length === 0) {
-      return NextResponse.json(
-        { success: false, error: 'Chat session not found' },
-        { status: 404 }
-      );
+      if (sessions.length === 0) {
+        return NextResponse.json(
+          { success: false, error: 'Chat session not found' },
+          { status: 404 }
+        );
+      }
+
+      const chatSessionId = sessions[0].ChatSessionId;
+
+      // Get messages with proper ordering and deduplication
+      const { recordset: messages } = await pool.request()
+        .input('ChatSessionId', sql.Int, chatSessionId)
+        .query(`
+          WITH RankedMessages AS (
+            SELECT 
+              ChatMessageId as id,
+              Content as content,
+              Sender as sender,
+              Timestamp as timestamp,
+              ResponseCard as responseCard,
+              ROW_NUMBER() OVER (
+                PARTITION BY Content, Sender, Timestamp 
+                ORDER BY ChatMessageId
+              ) as rn
+            FROM ChatMessage
+            WHERE ChatSessionId = @ChatSessionId
+          )
+          SELECT 
+            id,
+            content,
+            sender,
+            timestamp,
+            responseCard
+          FROM RankedMessages
+          WHERE rn = 1
+          ORDER BY timestamp ASC
+        `);
+
+      // Parse response cards from JSON strings
+      const parsedMessages = messages.map(msg => ({
+        ...msg,
+        responseCard: msg.responseCard ? JSON.parse(msg.responseCard) : null
+      }));
+
+      return NextResponse.json({ 
+        success: true, 
+        messages: parsedMessages,
+        sessionId: sessions[0].LexSessionId,
+        status: sessions[0].Status,
+        createdAt: sessions[0].CreatedAt
+      });
+    } else {
+      // Get all chat sessions for the search
+      const { recordset: sessions } = await pool.request()
+        .input('SearchId', sql.Int, searchId)
+        .query(`
+          SELECT 
+            ChatSessionId,
+            LexSessionId,
+            Status,
+            CreatedAt,
+            (
+              SELECT TOP 1 Content
+              FROM ChatMessage
+              WHERE ChatSessionId = ChatSession.ChatSessionId
+              ORDER BY Timestamp ASC
+            ) as FirstMessage,
+            (
+              SELECT TOP 1 Content
+              FROM ChatMessage
+              WHERE ChatSessionId = ChatSession.ChatSessionId
+              ORDER BY Timestamp DESC
+            ) as LastMessage
+          FROM ChatSession 
+          WHERE SearchId = @SearchId
+          ORDER BY CreatedAt DESC
+        `);
+
+      return NextResponse.json({ 
+        success: true, 
+        sessions: sessions.map(session => ({
+          ...session,
+          firstMessage: session.FirstMessage,
+          lastMessage: session.LastMessage
+        }))
+      });
     }
-
-    const chatSessionId = sessions[0].ChatSessionId;
-    const lexSessionId = sessions[0].LexSessionId;
-
-    const { recordset: messages } = await pool.request()
-      .input('ChatSessionId', sql.Int, chatSessionId)
-      .query(`
-        SELECT 
-          ChatMessageId as id,
-          Content as content,
-          Sender as sender,
-          Timestamp as timestamp,
-          ResponseCard as responseCard
-        FROM ChatMessage
-        WHERE ChatSessionId = @ChatSessionId
-        ORDER BY Timestamp ASC
-      `);
-
-    // Parse response cards from JSON strings
-    const parsedMessages = messages.map(msg => ({
-      ...msg,
-      responseCard: msg.responseCard ? JSON.parse(msg.responseCard) : null
-    }));
-
-    return NextResponse.json({ 
-      success: true, 
-      messages: parsedMessages,
-      sessionId: lexSessionId
-    });
   } catch (error) {
     console.error('Error retrieving chat history:', error);
     return NextResponse.json(

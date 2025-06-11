@@ -10,6 +10,14 @@ import { Separator } from "@/components/ui/separator";
 import { sendMessageToLex } from "@/services/lexService";
 import { useToast } from "@/hooks/use-toast";
 import { ImageResponseCard } from "@aws-sdk/client-lex-runtime-v2";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 type MessageType = {
   id: string;
@@ -27,14 +35,16 @@ export default function Chatbot() {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [showSessionDialog, setShowSessionDialog] = useState(false);
+  const [previousSessions, setPreviousSessions] = useState<any[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const sessionId = useRef<string>(`${searchId}-${Date.now()}`);
   const { toast } = useToast();
 
-  // Load chat history only if coming from history page
+  // Load chat history or check for previous sessions
   useEffect(() => {
-    if (fromHistory && searchId) {
-      loadChatHistory();
+    if (searchId) {
+      checkPreviousSessions();
     } else {
       // Start fresh session with welcome message
       const welcomeMessage: MessageType = {
@@ -55,11 +65,47 @@ export default function Chatbot() {
         setMessages([welcomeMessage]);
       }
     }
-  }, [searchId, initialMessage, fromHistory]);
+  }, [searchId, initialMessage]);
 
-  const loadChatHistory = async () => {
+  const checkPreviousSessions = async () => {
     try {
       const response = await fetch(`/api/chat/history?searchId=${searchId}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        if (data.sessions && data.sessions.length > 0) {
+          setPreviousSessions(data.sessions);
+          setShowSessionDialog(true);
+        } else {
+          // No previous sessions, start new chat
+          startNewChat();
+        }
+      }
+    } catch (error) {
+      console.error('Error checking previous sessions:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load chat history",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const startNewChat = () => {
+    sessionId.current = `${searchId}-${Date.now()}`;
+    const welcomeMessage: MessageType = {
+      id: "welcome",
+      content: "Hello! I'm your property assistant. Ask me anything about real estate, property values, or how to use the Address Explorer Hub.",
+      sender: "bot",
+      timestamp: new Date()
+    };
+    setMessages([welcomeMessage]);
+    setShowSessionDialog(false);
+  };
+
+  const continuePreviousChat = async (session: any) => {
+    try {
+      const response = await fetch(`/api/chat/history?searchId=${searchId}&sessionId=${session.LexSessionId}`);
       const data = await response.json();
       
       if (data.success) {
@@ -68,17 +114,46 @@ export default function Chatbot() {
           timestamp: new Date(msg.timestamp)
         }));
         setMessages(loadedMessages);
-        
-        // Update sessionId to match the loaded chat session
-        if (data.sessionId) {
-          sessionId.current = data.sessionId;
-        }
+        sessionId.current = session.LexSessionId;
+        setShowSessionDialog(false);
       }
     } catch (error) {
       console.error('Error loading chat history:', error);
       toast({
         title: "Error",
         description: "Failed to load chat history",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEndChat = async () => {
+    try {
+      const response = await fetch('/api/chat/end', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sessionId: sessionId.current
+        }),
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        window.history.back();
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to end chat session",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error ending chat:', error);
+      toast({
+        title: "Error",
+        description: "Failed to end chat session",
         variant: "destructive",
       });
     }
@@ -228,6 +303,44 @@ export default function Chatbot() {
 
   return (
     <div className="space-y-6">
+      <Dialog open={showSessionDialog} onOpenChange={setShowSessionDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Previous Chat Sessions</DialogTitle>
+            <DialogDescription>
+              <div className="font-bold">
+                 Would you like to continue a previous chat or start a new one?
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {previousSessions.map((session) => (
+              <div
+                key={session.LexSessionId}
+                className="p-4 border rounded-lg cursor-pointer hover:bg-muted"
+                onClick={() => continuePreviousChat(session)}
+              >
+                <div className="font-medium">
+                  Chat from {new Date(session.CreatedAt).toLocaleString()}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {session.firstMessage} ... {session.lastMessage}
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  Status: {session.Status}
+                </div>
+              </div>
+            ))}
+            <Button
+              className="w-full"
+              onClick={startNewChat}
+            >
+              Start New Chat
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Card className="border-0 h shadow-lg mt-2">
         <CardHeader className="pb-0">
           <CardTitle className="flex items-center justify-between">
@@ -242,7 +355,7 @@ export default function Chatbot() {
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => window.history.back()}
+              onClick={handleEndChat}
               className="text-destructive hover:text-destructive hover:bg-destructive/10"
             >
               End Chat

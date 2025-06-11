@@ -54,30 +54,48 @@ export async function POST(req: Request) {
     const chatSessionId = sessionResult.recordset[0].ChatSessionId;
     console.log('Chat session created/retrieved:', chatSessionId);
 
-    // Insert messages
+    // Insert messages with deduplication
     for (const msg of messages) {
-      await transaction.request()
+      // Check if message already exists
+      const existingMessage = await transaction.request()
         .input('ChatSessionId', sql.Int, chatSessionId)
         .input('Content', sql.NVarChar, msg.content)
         .input('Sender', sql.NVarChar, msg.sender)
         .input('Timestamp', sql.DateTime, new Date(msg.timestamp))
-        .input('ResponseCard', sql.NVarChar, msg.responseCard ? JSON.stringify(msg.responseCard) : null)
         .query(`
-          INSERT INTO ChatMessage (
-            ChatSessionId,
-            Content,
-            Sender,
-            Timestamp,
-            ResponseCard
-          )
-          VALUES (
-            @ChatSessionId,
-            @Content,
-            @Sender,
-            @Timestamp,
-            @ResponseCard
-          )
+          SELECT TOP 1 ChatMessageId
+          FROM ChatMessage
+          WHERE ChatSessionId = @ChatSessionId
+            AND Content = @Content
+            AND Sender = @Sender
+            AND Timestamp = @Timestamp
         `);
+
+      if (existingMessage.recordset.length === 0) {
+        // Only insert if message doesn't exist
+        await transaction.request()
+          .input('ChatSessionId', sql.Int, chatSessionId)
+          .input('Content', sql.NVarChar, msg.content)
+          .input('Sender', sql.NVarChar, msg.sender)
+          .input('Timestamp', sql.DateTime, new Date(msg.timestamp))
+          .input('ResponseCard', sql.NVarChar, msg.responseCard ? JSON.stringify(msg.responseCard) : null)
+          .query(`
+            INSERT INTO ChatMessage (
+              ChatSessionId,
+              Content,
+              Sender,
+              Timestamp,
+              ResponseCard
+            )
+            VALUES (
+              @ChatSessionId,
+              @Content,
+              @Sender,
+              @Timestamp,
+              @ResponseCard
+            )
+          `);
+      }
     }
 
     // Commit the transaction
