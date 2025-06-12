@@ -37,17 +37,11 @@ interface PropertyDetailsProps {
   buildingOutline?: any;
 }
 
-const STORAGE_KEYS = {
-  PROPERTY_DETAILS: 'property_details',
-  CHAT_HISTORY: 'chat_history',
-  SELECTED_CHAT: 'selected_chat'
-};
 
 export default function HistoryPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
-  const { toggleSidebar } = useSidebar();
   const isMounted = useRef(true);
   const fetchTimeout = useRef<NodeJS.Timeout>();
 
@@ -253,20 +247,7 @@ export default function HistoryPage() {
     console.log('Property details updated:', propertyDetails);
   }, [propertyDetails]);
 
-  // Add function to handle starting a new chat
-  const handleStartNewChat = async () => {
-    if (!propertyDetails?.SearchId) {
-      toast({
-        title: "Error",
-        description: "Property details not found",
-        variant: "destructive",
-      });
-      return;
-    }
 
-    // Navigate to chat page with just the searchId
-    router.push(`/chat?searchId=${propertyDetails.SearchId}`);
-  };
 
   if (loading) {
     return (
@@ -424,13 +405,7 @@ export default function HistoryPage() {
             <Card className="p-6 flex flex-col gap-4">
               <div className="flex justify-between items-center mb-2">
                 <h3 className="text-lg font-semibold">Chat History</h3>
-                <Button 
-                  onClick={handleStartNewChat}
-                  className="flex items-center gap-2"
-                >
-                  <MessageSquare className="h-4 w-4" />
-                  Start New Chat
-                </Button>
+                
               </div>
               
               {isLoadingChat ? (
