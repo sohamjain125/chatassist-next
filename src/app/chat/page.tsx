@@ -21,7 +21,7 @@ type MessageType = {
 
 export default function Chatbot() {
   const searchParams = useSearchParams();
-  const initialMessage = searchParams?.get('message') ?? null;
+  const initialMessage = searchParams?.get('message');
   const searchId = searchParams?.get('searchId');
   const sessionId = searchParams?.get('sessionId');
   // const fromHistory = searchParams?.get('fromHistory') === 'true';
