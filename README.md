@@ -37,7 +37,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ## 🧭 Application Flow
 
-```mermaid
+
 graph TD
     A[Login] --> B[Dashboard]
     B --> C[Search Property]
@@ -49,7 +49,7 @@ graph TD
     H --> I[Chat History]
     D --> I
     E --> J[Historical Data Page]
-```
+
 
 - **Dashboard**: Entry point after login, shows recent searches and navigation.
 - **Search**: Find properties, view details, and start a chat.
