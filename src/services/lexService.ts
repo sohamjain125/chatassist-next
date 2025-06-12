@@ -65,11 +65,7 @@ export const sendMessageToLex = async (
 
 export const getConversationHistory = async (sessionId: string): Promise<MessageType[]> => {
   try {
-    // Since AWS Lex doesn't provide a direct API to fetch conversation history,
-    // we'll need to store the messages in our database and retrieve them from there.
-    // This is a more reliable approach as it ensures we have access to the complete
-    // conversation history.
-    
+ 
     const response = await fetch(`/api/chat/history?sessionId=${sessionId}`);
     const data = await response.json();
     
