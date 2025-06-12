@@ -51,7 +51,7 @@ export const sendMessageToLex = async (
     const response = await lexClient.send(command);
     
     return {
-      message: response.messages?.[0]?.content || "Sorry, I couldn't process that request.",
+      message: response.messages?.[0]?.content || "",
       sessionId: response.sessionId || sessionId,
       intentName: response.interpretations?.[0]?.intent?.name,
       slots: response.interpretations?.[0]?.intent?.slots,
