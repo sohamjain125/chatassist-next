@@ -17,6 +17,7 @@ export default function Dashboard() {
   const [userInfo, setUserInfo] = useState<UserInfo>({ firstname: '', lastname: '' });
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Check for token on client side
@@ -25,43 +26,45 @@ export default function Dashboard() {
     if (!token) {
       router.push('/login');
     } else {
-      // Fetch user information
-      fetch('/api/auth/user', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            setUserInfo({
-              firstname: data.user.firstname,
-              lastname: data.user.lastname
-            });
+      // Fetch user information and recent searches in parallel
+      Promise.all([
+        fetch('/api/auth/user', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }),
+        fetch('/api/search/history', {
+          headers: {
+            'Authorization': `Bearer ${token}`
           }
         })
-        .catch(err => {
-          console.error('Error fetching user info:', err);
-        });
+      ])
+        .then(async ([userRes, historyRes]) => {
+          const [userData, historyData] = await Promise.all([
+            userRes.json(),
+            historyRes.json()
+          ]);
 
-      // Fetch recent searches
-      fetch('/api/search/history', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
+          if (userData.success) {
+            setUserInfo({
+              firstname: userData.user.firstname,
+              lastname: userData.user.lastname
+            });
+          }
+
+          if (historyData.success) {
             // Sort searches by timestamp in descending order (latest first)
-            const sortedSearches = data.searches.sort((a: HistoryItem, b: HistoryItem) => 
+            const sortedSearches = historyData.searches.sort((a: HistoryItem, b: HistoryItem) => 
               new Date(b.CreatedAt).getTime() - new Date(a.CreatedAt).getTime()
             );
             setRecentSearches(sortedSearches);
           }
         })
         .catch(err => {
-          console.error('Error fetching search history:', err);
+          console.error('Error fetching dashboard data:', err);
+        })
+        .finally(() => {
+          setIsLoading(false);
         });
     }
   }, [router]);
@@ -138,18 +141,18 @@ export default function Dashboard() {
   };
 
   const handleHistoryClick = () => {
-    setIsHistoryLoading(true);
-    router.push("/history");
+    
+    router.push("/historical-data");
   };
 
   return (
     <div className="space-y-6 mt-6 relative">
-      {(isSearchLoading || isHistoryLoading) && (
+      {(isSearchLoading || isHistoryLoading || isLoading) && (
         <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="flex flex-col items-center gap-2">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
             <p className="text-sm text-muted-foreground">
-              {isSearchLoading ? "Loading search..." : "Loading history..."}
+              {isLoading ? "Loading dashboard..." : isSearchLoading ? "Loading search..." : "Loading history..."}
             </p>
           </div>
         </div>
@@ -171,7 +174,6 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="h-36 flex items-center justify-center bg-muted/50 rounded-md mb-4">
-
               <FontAwesomeIcon
                 icon={faLocationDot}
                 beat
@@ -198,14 +200,11 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="h-36 flex items-center justify-center bg-muted/50 rounded-md mb-4">
-
               <FontAwesomeIcon
                 icon={faHouse}
                 beat
                 style={{ color: "#4c95bb", fontSize: "64px" }}
               />
-
-
             </div>
             <Button className="w-full" onClick={handleHistoryClick} disabled={isHistoryLoading}>
               {isHistoryLoading ? (
@@ -219,8 +218,6 @@ export default function Dashboard() {
             </Button>
           </CardContent>
         </Card>
-
-
       </div>
 
       <div>
@@ -234,64 +231,76 @@ export default function Dashboard() {
           <CardContent>
             <div className="space-y-4">
               {recentSearches.length > 0 ? (
-                recentSearches.map((search, index) => {
-                  const addressParts = parseAddress(search.Address);
-                  return (
-                    <div 
-                      key={index} 
-                      className="flex items-center justify-between p-4 bg-muted/40 rounded-lg hover:bg-muted/60 transition-colors"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                          <FontAwesomeIcon
-                            icon={faLocationDot}
-                            className="h-5 w-5 text-primary"
-                          />
+                <>
+                  {recentSearches.slice(0, 3).map((search, index) => {
+                    const addressParts = parseAddress(search.Address);
+                    return (
+                      <div 
+                        key={index} 
+                        className="flex items-center justify-between p-4 bg-muted/40 rounded-lg hover:bg-muted/60 transition-colors"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                            <FontAwesomeIcon
+                              icon={faLocationDot}
+                              className="h-5 w-5 text-primary"
+                            />
+                          </div>
+                          <div>
+                            <div className="font-medium text-base">{addressParts.street}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {addressParts.suburb && `${addressParts.suburb}, `}
+                              {addressParts.state && `${addressParts.state} `}
+                              {addressParts.postcode && addressParts.postcode}
+                            </div>
+                            <div className="text-xs text-muted-foreground mt-1">
+                              Searched on {formatDateTime(search.CreatedAt)}
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <div className="font-medium text-base">{addressParts.street}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {addressParts.suburb && `${addressParts.suburb}, `}
-                            {addressParts.state && `${addressParts.state} `}
-                            {addressParts.postcode && addressParts.postcode}
-                          </div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            Searched on {formatDateTime(search.CreatedAt)}
-                          </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const propertyData = {
+                                SearchId: search.SearchId,
+                                Address: search.Address,
+                                PropertyDetailId: search.PropertyDetailId,
+                                PropertyNo: search.PropertyNo,
+                                CreatedAt: search.CreatedAt,
+                                PlanNo: search.PlanNo || '',
+                                Suburb: search.Suburb || '',
+                                State: search.State || '',
+                                Postcode: search.Postcode || '',
+                                LotNo: search.LotNo || '',
+                                SectionNo: search.SectionNo || '',
+                                Volume: search.Volume || '',
+                                Folio: search.Folio || ''
+                              };
+                              console.log('Navigating to history with data:', propertyData);
+                              const url = `/search-history?data=${encodeURIComponent(JSON.stringify(propertyData))}`;
+                              console.log('URL:', url);
+                              router.push(url);
+                            }}
+                          >
+                            View Details
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            const propertyData = {
-                              SearchId: search.SearchId,
-                              Address: search.Address,
-                              PropertyDetailId: search.PropertyDetailId,
-                              PropertyNo: search.PropertyNo,
-                              CreatedAt: search.CreatedAt,
-                              PlanNo: search.PlanNo || '',
-                              Suburb: search.Suburb || '',
-                              State: search.State || '',
-                              Postcode: search.Postcode || '',
-                              LotNo: search.LotNo || '',
-                              SectionNo: search.SectionNo || '',
-                              Volume: search.Volume || '',
-                              Folio: search.Folio || ''
-                            };
-                            console.log('Navigating to history with data:', propertyData);
-                            const url = `/history?data=${encodeURIComponent(JSON.stringify(propertyData))}`;
-                            console.log('URL:', url);
-                            router.push(url);
-                          }}
-                        >
-                          View Details
-                        </Button>
-                      </div>
+                    );
+                  })}
+                  {recentSearches.length > 3 && (
+                    <div className="text-center mt-6">
+                      <Button
+                        variant="outline"
+                        onClick={() => router.push('/search-history')}
+                      >
+                        View All Searches
+                      </Button>
                     </div>
-                  );
-                })
+                  )}
+                </>
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
                   <div className="h-16 w-16 mx-auto mb-4 rounded-full bg-muted/50 flex items-center justify-center">
@@ -301,24 +310,6 @@ export default function Dashboard() {
                     />
                   </div>
                   <p className="text-lg mb-2">No recent searches found</p>
-                  <p className="text-sm mb-4">Start exploring properties by searching for an address</p>
-                  <Button
-                    variant="default"
-                    onClick={() => router.push('/search')}
-                  >
-                    Search Properties
-                  </Button>
-                </div>
-              )}
-
-              {recentSearches.length > 0 && (
-                <div className="text-center mt-6">
-                  <Button
-                    variant="outline"
-                    onClick={() => router.push('/history')}
-                  >
-                    View All Searches
-                  </Button>
                 </div>
               )}
             </div>

@@ -86,6 +86,7 @@ CREATE TABLE PropertyDetail (
     UnitNumber VARCHAR(50),
     DetachedStatus VARCHAR(50),
     StandardParcelIdentifier VARCHAR(50),
+    StandardPropertyIdentifier VARCHAR(50),
     ShopNo VARCHAR(50),
     Longitude FLOAT,
     Latitude FLOAT,

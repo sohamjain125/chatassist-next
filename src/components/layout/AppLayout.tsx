@@ -72,7 +72,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
       icon: MenuIcon,
       subItems: [
         { name: 'Search', href: '/search', icon: SearchIcon },
-        { name: 'History', href: '/history', icon: HistoryIcon }
+        { name: 'Historical Data', href: '/history', icon: HistoryIcon }
       ]
     }
   ];

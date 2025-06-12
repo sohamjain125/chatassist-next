@@ -115,6 +115,7 @@ export async function POST(req: Request) {
       .input('UnitNumber', sql.VarChar, getValue(propertyData.UnitNumber))
       .input('DetachedStatus', sql.VarChar, getValue(propertyData.DetachedStatus))
       .input('StandardParcelIdentifier', sql.VarChar, getValue(propertyData.StandardParcelIdentifier))
+      .input('StandardPropertyIdentifier', sql.VarChar, getValue(propertyData.StandardPropertyIdentifier))
       .input('ShopNo', sql.VarChar, getValue(propertyData.ShopNo))
       .input('Longitude', sql.Float, getValue(propertyData.Longitude))
       .input('Latitude', sql.Float, getValue(propertyData.Latitude))
@@ -190,6 +191,7 @@ export async function POST(req: Request) {
           UnitNumber,
           DetachedStatus,
           StandardParcelIdentifier,
+          StandardPropertyIdentifier,
           ShopNo,
           Longitude,
           Latitude,
@@ -266,6 +268,7 @@ export async function POST(req: Request) {
           @UnitNumber,
           @DetachedStatus,
           @StandardParcelIdentifier,
+          @StandardPropertyIdentifier,
           @ShopNo,
           @Longitude,
           @Latitude,
