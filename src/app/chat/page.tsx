@@ -24,7 +24,7 @@ export default function Chatbot() {
   const initialMessage = searchParams?.get('message') ?? null;
   const searchId = searchParams?.get('searchId');
   const sessionId = searchParams?.get('sessionId');
-  const fromHistory = searchParams?.get('fromHistory') === 'true';
+  // const fromHistory = searchParams?.get('fromHistory') === 'true';
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -34,34 +34,89 @@ export default function Chatbot() {
 
   // Load chat history or start fresh session
   useEffect(() => {
-    if (sessionId) {
-      // Load existing chat session
-      loadChatSession(sessionId);
-    } else {
-      // Create new session ID and update URL
-      const newSessionId = `${searchId}-${Date.now()}`;
-      const newUrl = `/chat?searchId=${searchId}&sessionId=${newSessionId}`;
-      window.history.replaceState({}, '', newUrl);
-      currentSessionId.current = newSessionId;
+    const checkActiveSession = async () => {
+      try {
+        const response = await fetch(`/api/chat/history?searchId=${searchId}`);
+        const data = await response.json();
+        
+        if (data.success && data.sessions?.length > 0) {
+          // Find the most recent active session
+          const activeSession = data.sessions.find((session: any) => session.Status === 'active');
+          if (activeSession) {
+            // Redirect to the active session
+            const newUrl = `/chat?searchId=${searchId}&sessionId=${activeSession.LexSessionId}`;
+            window.history.replaceState({}, '', newUrl);
+            currentSessionId.current = activeSession.LexSessionId;
+            loadChatSession(activeSession.LexSessionId);
+            return;
+          }
+        }
+        
+        // If no active session found, proceed with normal flow
+        if (sessionId) {
+          loadChatSession(sessionId);
+        } else {
+          // Create new session ID and update URL
+          const newSessionId = `${searchId}-${Date.now()}`;
+          const newUrl = `/chat?searchId=${searchId}&sessionId=${newSessionId}`;
+          window.history.replaceState({}, '', newUrl);
+          currentSessionId.current = newSessionId;
 
-      // Start fresh session with welcome message
-      const welcomeMessage: MessageType = {
-        id: "welcome",
-        content: "Hello! I'm your property assistant. Ask me anything about real estate, property values, or how to use the Address Explorer Hub.",
-        sender: "bot",
-        timestamp: new Date()
-      };
-      if (initialMessage) {
-        const propertyMessage: MessageType = {
-          id: "property-info",
-          content: initialMessage,
-          sender: "user",
-          timestamp: new Date()
-        };
-        setMessages([propertyMessage, welcomeMessage]);
-      } else {
-        setMessages([welcomeMessage]);
+          // Start fresh session with welcome message
+          const welcomeMessage: MessageType = {
+            id: "welcome",
+            content: "Hello! I'm your property assistant. Ask me anything about real estate, property values, or how to use the Address Explorer Hub.",
+            sender: "bot",
+            timestamp: new Date()
+          };
+          if (initialMessage) {
+            const propertyMessage: MessageType = {
+              id: "property-info",
+              content: initialMessage,
+              sender: "user",
+              timestamp: new Date()
+            };
+            setMessages([propertyMessage, welcomeMessage]);
+          } else {
+            setMessages([welcomeMessage]);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking active session:', error);
+        // If there's an error, proceed with normal flow
+        if (sessionId) {
+          loadChatSession(sessionId);
+        } else {
+          // Create new session ID and update URL
+          const newSessionId = `${searchId}-${Date.now()}`;
+          const newUrl = `/chat?searchId=${searchId}&sessionId=${newSessionId}`;
+          window.history.replaceState({}, '', newUrl);
+          currentSessionId.current = newSessionId;
+
+          // Start fresh session with welcome message
+          const welcomeMessage: MessageType = {
+            id: "welcome",
+            content: "Hello! I'm your property assistant. Ask me anything about real estate, property values, or how to use the Address Explorer Hub.",
+            sender: "bot",
+            timestamp: new Date()
+          };
+          if (initialMessage) {
+            const propertyMessage: MessageType = {
+              id: "property-info",
+              content: initialMessage,
+              sender: "user",
+              timestamp: new Date()
+            };
+            setMessages([propertyMessage, welcomeMessage]);
+          } else {
+            setMessages([welcomeMessage]);
+          }
+        }
       }
+    };
+
+    if (searchId) {
+      checkActiveSession();
     }
   }, [searchId, initialMessage, sessionId]);
 

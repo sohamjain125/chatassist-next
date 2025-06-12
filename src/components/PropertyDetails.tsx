@@ -28,7 +28,6 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
   const [propertyDetails, setPropertyDetails] = useState<PropertyData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const searchParams = useSearchParams();
   const isMounted = useRef(false);
   const fetchTimeout = useRef<NodeJS.Timeout>();
   const [showSessionDialog, setShowSessionDialog] = useState(false);
