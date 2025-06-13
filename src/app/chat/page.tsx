@@ -39,14 +39,16 @@ export default function Chatbot() {
   useEffect(() => {
     const checkActiveSession = async () => {
       try {
+       
         if (!hash) {
           throw new Error('No search ID provided');
         }
 
         const searchId = decodeSearchId(hash);
-        const response = await fetch(`/api/chat/history?h=${hash}`);
+        const response = await fetch(`/api/chat/history?h=${hash}&s=${sessionId}`);
         const data = await response.json();
-        
+       
+
         if (data.success && data.sessions?.length > 0) {
           // Find the most recent active session
           const activeSession = data.sessions.find((session: any) => session.Status === 'active');
@@ -102,15 +104,18 @@ export default function Chatbot() {
       if (!hash) {
         throw new Error('No search ID provided');
       }
+     
       const response = await fetch(`/api/chat/history?h=${hash}&s=${sessionId}`);
       const data = await response.json();
-      
+     
       if (data.success) {
         const loadedMessages = data.messages.map((msg: any) => ({
           ...msg,
           timestamp: new Date(msg.timestamp)
         }));
+       
         setMessages(loadedMessages);
+       
         currentSessionId.current = sessionId;
       }
     } catch (error) {
@@ -179,7 +184,7 @@ export default function Chatbot() {
       });
       
       const data = await response.json();
-      console.log('Save chat response:', data);
+     
       
       if (data.success && data.sessionId) {
         currentSessionId.current = data.sessionId;
@@ -285,6 +290,15 @@ export default function Chatbot() {
       setIsTyping(false);
     }
   };
+
+
+
+  useEffect(() => {
+    if (hash && sessionId) {
+      loadChatSession(sessionId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hash, sessionId]);
 
   return (
     <div className="space-y-6">

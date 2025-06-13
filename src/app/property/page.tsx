@@ -27,7 +27,6 @@ export default function PropertyPage() {
         // Get property number and hash from URL
         const propertyNo = searchParams?.get('p');
         const hash = searchParams?.get('h');
-        console.log("propertywsdsdsdsdsdsdsdsdsNo,", hash);
         
         if (!propertyNo || !hash) {
           throw new Error('No property data available');

@@ -31,7 +31,7 @@ export async function GET(request: Request) {
       throw new Error('Failed to get authentication token');
     }
 
-    console.log('Fetching zones for assessment number:', PropertyNo);
+   
     const response = await fetch(`${BASE_URL}/Zone/${PropertyNo}`, {
       headers: {
         'Accept': 'application/json',
@@ -57,11 +57,7 @@ export async function GET(request: Request) {
       throw new Error('Invalid response format: expected an array of zones');
     }
 
-    // Log successful response
-    console.log('Successfully fetched zones:', {
-      count: zones.length,
-      assessmentNumber: PropertyNo
-    });
+
 
     return NextResponse.json(zones);
   } catch (error) {

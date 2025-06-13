@@ -31,7 +31,7 @@ export async function GET(request: Request) {
       throw new Error('Failed to get authentication token');
     }
 
-    console.log('Fetching overlays for assessment number:', PropertyNo);
+   
     const response = await fetch(`${BASE_URL}/Overlay/${PropertyNo}`, {
       headers: {
         'Accept': 'application/json',
@@ -55,11 +55,7 @@ export async function GET(request: Request) {
       throw new Error('Invalid response format: expected an array of overlays');
     }
 
-    // Log successful response
-    console.log('Successfully fetched overlays:', {
-      count: overlays.length,
-      assessmentNumber: PropertyNo
-    });
+   
 
     return NextResponse.json(overlays);
   } catch (error) {

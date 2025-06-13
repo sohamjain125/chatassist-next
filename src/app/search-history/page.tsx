@@ -83,7 +83,7 @@ export default function HistoryPage() {
 
   // Update fetchChatSession to handle server-side storage
   const fetchChatSession = async (sessionId: string) => {
-    if (!propertyDetails?.SearchId) {
+    if (!propertyDetails?.hash) {
       console.error('Property details not found:', propertyDetails);
       toast({
         title: "Error",
@@ -95,13 +95,23 @@ export default function HistoryPage() {
 
     try {
       setIsLoadingChat(true);
-      const response = await fetch(`/api/chat/history?searchId=${propertyDetails.SearchId}&sessionId=${sessionId}`);
-      const data = await response.json();
+     
       
-      if (data.success) {
-        setSelectedChat(data.messages || []);
+      const response = await fetch(`/api/chat/history?h=${propertyDetails.hash}&s=${sessionId}`);
+      const data = await response.json();
+     
+      
+      if (data.success && data.messages) {
+        // Convert timestamp strings to Date objects
+        const messages = data.messages.map((msg: any) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp)
+        }));
+       
+        setSelectedChat(messages);
       } else {
-        throw new Error(data.message || 'Failed to fetch chat session');
+        console.error('Invalid response data:', data);
+        throw new Error(data.error || 'Failed to fetch chat session');
       }
     } catch (err) {
       console.error('Error fetching chat session:', err);
@@ -131,7 +141,8 @@ export default function HistoryPage() {
         setPropertyDetails(prev => ({
           ...prev,
           ...data.property,
-          PropertyNo: PropertyNo
+          PropertyNo: PropertyNo,
+          hash: searchParams?.get('h') || ''
         }));
       }
     } catch (err) {
@@ -157,8 +168,7 @@ useEffect(() => {
         throw new Error('No property data provided');
       }
 
-      // Decode the hashed IDs (if you need to use them)
-      const { searchId, propertyId } = decodeIds(hash);
+     
 
       // Fetch all property data (details, zones, overlays) in one call
       await fetchPropertyData(propertyNo);
@@ -209,13 +219,13 @@ useEffect(() => {
 
   useEffect(() => {
     if (propertyDetails?.hash) {
-      console.log('Fetching chat history for SearchId:', propertyDetails.hash);
+     
       fetchChatHistory(propertyDetails.hash);
     }
   }, [propertyDetails?.hash]);
 
   useEffect(() => {
-    console.log('Property details updated:', propertyDetails);
+    
   }, [propertyDetails]);
 
 
@@ -398,43 +408,71 @@ useEffect(() => {
                     </Button>
                   </div>
                   <div className="space-y-4">
-                    {selectedChat.map((message: any, index: number) => (
-                      <div
-                        key={index}
-                        className={`flex ${
-                          message.sender === "user" ? "justify-end" : "justify-start"
-                        }`}
-                      >
-                        <div
-                          className={`max-w-[80%] rounded-lg px-4 py-2 ${
-                            message.sender === "user"
-                              ? "bg-primary text-primary-foreground"
-                              : "bg-muted"
-                          }`}
-                        >
-                          {message.sender === "bot" && (
-                            <div className="flex items-start gap-3 mb-2">
-                              <Avatar className="h-8 w-8">
-                                <AvatarImage src="" />
-                                <AvatarFallback className="bg-secondary text-secondary-foreground">AI</AvatarFallback>
-                              </Avatar>
-                              <div className="flex flex-col">
-                                <div className="font-medium">Property Assistant</div>
-                                <div className="text-xs text-muted-foreground">
-                                  {formatTime(message.timestamp)}
-                                </div>
+                    {selectedChat && selectedChat.length > 0 ? (
+                      <>
+                        {selectedChat.map((message: any, index: number) => {
+                          return (
+                            <div
+                              key={message.id || index}
+                              className={`flex ${
+                                message.sender === "user" ? "justify-end" : "justify-start"
+                              }`}
+                            >
+                              <div
+                                className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                                  message.sender === "user"
+                                    ? "bg-primary text-primary-foreground"
+                                    : "bg-muted"
+                                }`}
+                              >
+                                {message.sender === "bot" && (
+                                  <div className="flex items-start gap-3 mb-2">
+                                    <Avatar className="h-8 w-8">
+                                      <AvatarImage src="" />
+                                      <AvatarFallback className="bg-secondary text-secondary-foreground">AI</AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex flex-col">
+                                      <div className="font-medium">Property Assistant</div>
+                                      <div className="text-xs text-muted-foreground">
+                                        {formatTime(message.timestamp)}
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                                <div className="text-sm">{message.content}</div>
+                                {message.responseCard && (
+                                  <div className="mt-4">
+                                    <div className="font-medium mb-2">{message.responseCard.title}</div>
+                                    <div className="flex flex-wrap gap-2">
+                                      {message.responseCard.buttons?.map((button: any, idx: number) => (
+                                        <Button
+                                          key={idx}
+                                          variant="outline"
+                                          size="sm"
+                                          disabled
+                                          className="cursor-default opacity-70"
+                                        >
+                                          {button.text}
+                                        </Button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                                {message.sender === "user" && (
+                                  <div className="text-xs text-right mt-1 text-primary-foreground/70">
+                                    {formatTime(message.timestamp)}
+                                  </div>
+                                )}
                               </div>
                             </div>
-                          )}
-                          <div className="text-sm">{message.content}</div>
-                          {message.sender === "user" && (
-                            <div className="text-xs text-right mt-1 text-primary-foreground/70">
-                              {formatTime(message.timestamp)}
-                            </div>
-                          )}
-                        </div>
+                          );
+                        })}
+                      </>
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        No messages found in this chat session
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
               ) : (

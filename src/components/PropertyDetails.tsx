@@ -141,11 +141,11 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
       // Check for previous sessions
       const response = await fetch(`/api/chat/history?h=${propertyData.hash}`);
       const data = await response.json();
-
+      
       if (data.success && data.sessions && data.sessions.length > 0) {
         // Get only the latest ended session
         const latestEndedSession = data.sessions.find((session: any) => session.Status === 'ended');
-
+        
         if (latestEndedSession) {
           // Show dialog with only the latest ended session
           setShowSessionDialog(true);

@@ -25,7 +25,7 @@ const transformFromEPSG3111 = (x: number, y: number) => {
   
   // Transform the coordinates
   const [lng, lat] = proj4(sourceProj, targetProj, [x, y]);
-  console.log(lat, lng);
+
   
   return { lat, lng };
 };
@@ -46,7 +46,7 @@ const fetchPropertyData = async (pfi: string) => {
       const transformedCoordinates = rings.map(([x, y]: [number, number]) => 
         transformFromEPSG3111(x, y)
       );
-      console.log('transformedCoordinates',transformedCoordinates);
+     
       return {
         coordinates: transformedCoordinates,
         properties: feature.attributes
