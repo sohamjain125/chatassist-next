@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { getAuthToken } from '@/lib/auth';
 
 interface Zone {
   SchemeCode: string;
@@ -11,48 +12,6 @@ interface Zone {
 }
 
 const BASE_URL = process.env.API_URL;
-const USERNAME = process.env.SURF_COAST_USERNAME;
-const PASSWORD = process.env.SURF_COAST_PASSWORD;
-let authToken: string | null = null;
-
-
-async function getAuthToken() {
-  // Check if we have a valid token
-  if (authToken ) {
-    return authToken;
-  }
-
-  try {
-    const response = await fetch(`${BASE_URL}/Auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        username: USERNAME,
-        password: PASSWORD
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Auth response error:', {
-        status: response.status,
-        statusText: response.statusText,
-        body: errorText
-      });
-      throw new Error(`Failed to get authentication token: ${response.status} ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    authToken = data.token;
-  
-    return authToken;
-  } catch (error) {
-    console.error('Error getting auth token:', error);
-    throw error;
-  }
-}
 
 export async function GET(request: Request) {
   try {
@@ -74,10 +33,10 @@ export async function GET(request: Request) {
 
     console.log('Fetching zones for assessment number:', PropertyNo);
     const response = await fetch(`${BASE_URL}/Zone/${PropertyNo}`, {
-        headers: {
-            'Accept': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
     });
 
     if (!response.ok) {

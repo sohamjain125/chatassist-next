@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { getAuthToken } from '@/lib/auth';
 
 interface Overlay {
   SchemeCode: string;
@@ -10,50 +11,7 @@ interface Overlay {
   SourceType: string;
 }
 
-
-let authToken: string | null = null;
-
 const BASE_URL = process.env.API_URL;
-const USERNAME = process.env.SURF_COAST_USERNAME;
-const PASSWORD = process.env.SURF_COAST_PASSWORD;
-async function getAuthToken() {
-  // Check if we have a valid token
-  if (authToken ) {
-    return authToken;
-  }
-
-  try {
-    const response = await fetch(`${BASE_URL}/Auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({  
-        username: USERNAME,
-        password: PASSWORD
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Auth response error:', {
-        status: response.status,
-        statusText: response.statusText,
-        body: errorText
-      });
-      throw new Error(`Failed to get authentication token: ${response.status} ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    authToken = data.token;
-    // Set token expiry to 1 hour from now
-    // tokenExpiry = Date.now() + 3600000;
-    return authToken;
-  } catch (error) {
-    console.error('Error getting auth token:', error);
-    throw error;
-  }
-}
 
 export async function GET(request: Request) {
   try {

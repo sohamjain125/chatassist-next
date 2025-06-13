@@ -114,4 +114,43 @@ export function getUserFromLocalStorage(): User | null {
 
 export function clearUserFromLocalStorage() {
   localStorage.removeItem('user');
+}
+
+// Token management
+let authToken: string | null = null;
+let tokenExpiry: number | null = null;
+const TOKEN_REFRESH_THRESHOLD = 5 * 60 * 1000; // 5 minutes in milliseconds
+
+export async function getAuthToken(): Promise<string | null> {
+  // Check if we have a valid token that's not about to expire
+  if (authToken && tokenExpiry && Date.now() < tokenExpiry - TOKEN_REFRESH_THRESHOLD) {
+    return authToken;
+  }
+
+  try {
+    const response = await fetch(`${process.env.API_URL}/Auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        username: process.env.SURF_COAST_USERNAME,
+        password: process.env.SURF_COAST_PASSWORD
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to get authentication token');
+    }
+
+    const data = await response.json();
+    authToken = data.token;
+    // Set token expiry to 1 hour from now
+    tokenExpiry = Date.now() + 3600000;
+    
+    return authToken;
+  } catch (error) {
+    console.error('Error getting auth token:', error);
+    throw error;
+  }
 }   

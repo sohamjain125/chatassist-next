@@ -10,49 +10,33 @@ import { Loader2 } from 'lucide-react';
 import { UserInfo } from "@/interface/dashboard.interface";
 import { HistoryItem } from "@/interface/dashboard.interface";
 import { encodeIds } from '@/lib/hash';
+import { useUser } from '@/hooks/useUser';
 
 
 export default function Dashboard() {
   const router = useRouter();
+  const { data: userData, isLoading: isUserLoading, error: userError } = useUser();
   const [recentSearches, setRecentSearches] = useState<HistoryItem[]>([]);
-  const [userInfo, setUserInfo] = useState<UserInfo>({ firstname: '', lastname: '' });
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [showAllSearches, setShowAllSearches] = useState(false);
+
   useEffect(() => {
     // Check for token on client side
     const token = document.cookie.split('; ').find(row => row.startsWith('auth_token='))?.split('=')[1];
-
     if (!token) {
       router.push('/login');
     } else {
-      // Fetch user information and recent searches in parallel
-      Promise.all([
-        fetch('/api/auth/user', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }),
-        fetch('/api/search/history', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        })
-      ])
-        .then(async ([userRes, historyRes]) => {
-          const [userData, historyData] = await Promise.all([
-            userRes.json(),
-            historyRes.json()
-          ]);
-
-          if (userData.success) {
-            setUserInfo({
-              firstname: userData.user.firstname,
-              lastname: userData.user.lastname
-            });
-          }
-
+      // Only fetch search history, user info comes from React Query
+      fetch('/api/search/history', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        credentials: 'include',
+      })
+        .then(async (historyRes) => {
+          const historyData = await historyRes.json();
           if (historyData.success) {
             // Sort searches by timestamp in descending order (latest first)
             const sortedSearches = historyData.searches.sort((a: HistoryItem, b: HistoryItem) => 
@@ -162,7 +146,7 @@ export default function Dashboard() {
       )}
       <div className="flex flex-col space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">
-          Welcome back, {userInfo.firstname} {userInfo.lastname}!
+          Welcome back, {userData?.user.firstname} {userData?.user.lastname}!
         </h1>
         <p className="text-muted-foreground">
           How would you like to me to help you today?

@@ -39,23 +39,22 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
     if (!PropertyNo) return;
 
     try {
-      const [zonesResponse, overlaysResponse] = await Promise.all([
-        fetch(`/api/zone?assessmentNumber=${PropertyNo}`),
-        fetch(`/api/overlay?assessmentNumber=${PropertyNo}`)
-      ]);
-
-      if (!zonesResponse.ok || !overlaysResponse.ok) {
+      const response = await fetch(`/api/property-data?assessmentNumber=${PropertyNo}`);
+      
+      if (!response.ok) {
         throw new Error('Failed to fetch property data');
       }
 
-      const [zonesData, overlaysData] = await Promise.all([
-        zonesResponse.json(),
-        overlaysResponse.json()
-      ]);
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to fetch property data');
+      }
 
       if (isMounted.current) {
-        setZones(Array.isArray(zonesData) ? zonesData : []);
-        setOverlays(Array.isArray(overlaysData) ? overlaysData : []);
+        setZones(data.zones || []);
+        setOverlays(data.overlays || []);
+        setPropertyDetails(data.property);
       }
     } catch (err) {
       console.error('Error fetching property data:', err);

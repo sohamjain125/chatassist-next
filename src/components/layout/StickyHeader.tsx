@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/tooltip";
 import UserIcon from '../icons/UserIcon';
 import { StickyHeaderProps } from '@/interface/header.interface';
-import { UserInfo } from '@/interface/user.interface';
+import { useUser } from '@/hooks/useUser';
 
 
 const StickyHeader: React.FC<StickyHeaderProps> = ({
@@ -34,32 +34,9 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({
   showBackButton = false
 }) => {
   const router = useRouter();
-  const [userInfo, setUserInfo] = useState<UserInfo>({ firstname: '', lastname: '', email: '' });
   const { state: sidebarState } = useSidebar();
+  const { data, isLoading, error } = useUser();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  useEffect(() => {
-    const fetchUserInfo = async () => {
-      const token = document.cookie.split('; ').find(row => row.startsWith('auth_token='))?.split('=')[1];
-      if (token) {
-        try {
-          const response = await fetch('/api/auth/user', {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-          const data = await response.json();
-          if (data.success) {
-            setUserInfo(data.user);
-          }
-        } catch (error) {
-          console.error('Error fetching user info:', error);
-        }
-      }
-    };
-
-    fetchUserInfo();
-  }, [router]);
 
   useEffect(() => {
     const token = document.cookie.split('; ').find(row => row.startsWith('auth_token='))?.split('=')[1];
@@ -74,6 +51,25 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({
   if (!isAuthenticated) {
     return null;
   }
+
+  if (isLoading) {
+    return (
+      <header className="fixed top-0 right-0 z-50 bg-white border-b h-14 transition-[left] duration-300">
+        <div className="flex items-center justify-between h-full px-4 w-full">
+          <div className="flex items-center space-x-4 min-w-0">
+            {children}
+            <span>Loading user...</span>
+          </div>
+        </div>
+      </header>
+    );
+  }
+
+  if (error || !data?.success) {
+    return null;
+  }
+
+  const userInfo = data.user;
 
   return (
     <header className={`fixed top-0 right-0 z-50 bg-white border-b h-14 transition-[left] duration-300 ${sidebarState === 'expanded' ? 'left-64' : 'left-0'}`}>

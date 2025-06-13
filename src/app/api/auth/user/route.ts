@@ -1,20 +1,17 @@
 import { NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
+import { cookies } from 'next/headers';
 
 export async function GET(request: Request) {
   try {
     // Get the authorization header
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+    const cookieStore = await cookies();
+    const token = cookieStore.get('auth_token')?.value;
 
-    // Extract the token
-    const token = authHeader.split(' ')[1];
-    
+
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     // Verify the token and get user info
     const user = await verifyToken(token);
     
