@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { sql, getConnection } from '@/lib/db';
 import { verifyToken } from '@/lib/auth';
 import { cookies } from 'next/headers';
+import { decodeSearchId } from '@/lib/hash';
 
 export async function GET(req: Request) {
   try {
@@ -24,8 +25,21 @@ export async function GET(req: Request) {
     }
 
     const { searchParams } = new URL(req.url);
-    const searchId = searchParams.get('searchId');
-    const sessionId = searchParams.get('sessionId');
+    let searchId = searchParams.get('searchId');
+    const hash = searchParams.get('h');
+    const sessionId = searchParams.get('sessionId') || searchParams.get('s');
+
+    // If hash is provided, decode it
+    if (hash) {
+      try {
+        searchId = decodeSearchId(hash).toString();
+      } catch (e) {
+        return NextResponse.json(
+          { success: false, error: 'Invalid hash' },
+          { status: 400 }
+        );
+      }
+    }
 
     if (!searchId) {
       return NextResponse.json(

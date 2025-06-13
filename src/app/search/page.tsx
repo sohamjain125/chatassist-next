@@ -9,6 +9,7 @@ import Map from '@/components/Map';
 import { Card, CardContent } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
 import { PropertyDetails, PropertySuggestion } from '@/interface/property.interface';
+import { encodeIds } from '@/lib/hash';
 
 export default function Search() {
   const router = useRouter();
@@ -239,16 +240,11 @@ export default function Search() {
 
       const { searchId, propertyDetailId } = await response.json();
 
-      // Navigate to property page with search ID and property detail ID
-      const queryParams = new URLSearchParams();
-      queryParams.set('data', JSON.stringify({
-        PropertyNo: selectedProperty.PropertyNo,
-        SearchId: searchId
-      }));
-      queryParams.set('searchId', searchId.toString());
-      queryParams.set('propertyDetailId', propertyDetailId.toString());
+      // Encode both IDs into a single hash
+      const encodedIds = encodeIds(searchId, propertyDetailId);
       
-      router.push(`/property?${queryParams.toString()}`);
+      // Navigate to property page with only the hashed IDs and property number
+      router.push(`/property?p=${selectedProperty.PropertyNo}&h=${encodedIds}`);
     } catch (error) {
       console.error('Error saving search:', error);
       setError('Failed to save search');

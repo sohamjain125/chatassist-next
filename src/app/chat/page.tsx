@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { sendMessageToLex } from "@/services/lexService";
 import { useToast } from "@/hooks/use-toast";
 import { ImageResponseCard } from "@aws-sdk/client-lex-runtime-v2";
+import { decodeSearchId } from '@/lib/hash';
 
 type MessageType = {
   id: string;
@@ -22,21 +23,27 @@ type MessageType = {
 export default function Chatbot() {
   const searchParams = useSearchParams();
   const initialMessage = searchParams?.get('message');
-  const searchId = searchParams?.get('searchId');
-  const sessionId = searchParams?.get('sessionId');
+  const hash = searchParams?.get('h');
+  const sessionId = searchParams?.get('s');
   // const fromHistory = searchParams?.get('fromHistory') === 'true';
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const currentSessionId = useRef<string>(sessionId || `${searchId}-${Date.now()}`);
+  const currentSessionId = useRef<string>(sessionId || `${hash}-${Date.now()}`);
   const { toast } = useToast();
+  const [sessionExists, setSessionExists] = useState(!!sessionId);
 
   // Load chat history or start fresh session
   useEffect(() => {
     const checkActiveSession = async () => {
       try {
-        const response = await fetch(`/api/chat/history?searchId=${searchId}`);
+        if (!hash) {
+          throw new Error('No search ID provided');
+        }
+
+        const searchId = decodeSearchId(hash);
+        const response = await fetch(`/api/chat/history?h=${hash}`);
         const data = await response.json();
         
         if (data.success && data.sessions?.length > 0) {
@@ -44,25 +51,18 @@ export default function Chatbot() {
           const activeSession = data.sessions.find((session: any) => session.Status === 'active');
           if (activeSession) {
             // Redirect to the active session
-            const newUrl = `/chat?searchId=${searchId}&sessionId=${activeSession.LexSessionId}`;
+            const newUrl = `/chat?h=${hash}&s=${activeSession.LexSessionId}`;
             window.history.replaceState({}, '', newUrl);
             currentSessionId.current = activeSession.LexSessionId;
+            setSessionExists(true);
             loadChatSession(activeSession.LexSessionId);
             return;
           }
         }
-        
-        // If no active session found, proceed with normal flow
-        if (sessionId) {
-          loadChatSession(sessionId);
-        } else {
-          // Create new session ID and update URL
-          const newSessionId = `${searchId}-${Date.now()}`;
-          const newUrl = `/chat?searchId=${searchId}&sessionId=${newSessionId}`;
-          window.history.replaceState({}, '', newUrl);
-          currentSessionId.current = newSessionId;
-
-          // Start fresh session with welcome message
+        // If no active session found, only set sessionExists if sessionId is present
+        setSessionExists(!!sessionId);
+        // For new chat, show welcome message only
+        if (!sessionId) {
           const welcomeMessage: MessageType = {
             id: "welcome",
             content: "Hello! I'm your property assistant. Ask me anything about real estate, property values, or how to use the Address Explorer Hub.",
@@ -83,46 +83,25 @@ export default function Chatbot() {
         }
       } catch (error) {
         console.error('Error checking active session:', error);
-        // If there's an error, proceed with normal flow
-        if (sessionId) {
-          loadChatSession(sessionId);
-        } else {
-          // Create new session ID and update URL
-          const newSessionId = `${searchId}-${Date.now()}`;
-          const newUrl = `/chat?searchId=${searchId}&sessionId=${newSessionId}`;
-          window.history.replaceState({}, '', newUrl);
-          currentSessionId.current = newSessionId;
-
-          // Start fresh session with welcome message
-          const welcomeMessage: MessageType = {
-            id: "welcome",
-            content: "Hello! I'm your property assistant. Ask me anything about real estate, property values, or how to use the Address Explorer Hub.",
-            sender: "bot",
-            timestamp: new Date()
-          };
-          if (initialMessage) {
-            const propertyMessage: MessageType = {
-              id: "property-info",
-              content: initialMessage,
-              sender: "user",
-              timestamp: new Date()
-            };
-            setMessages([propertyMessage, welcomeMessage]);
-          } else {
-            setMessages([welcomeMessage]);
-          }
-        }
+        toast({
+          title: "Error",
+          description: "Failed to load chat session",
+          variant: "destructive",
+        });
       }
     };
 
-    if (searchId) {
+    if (hash) {
       checkActiveSession();
     }
-  }, [searchId, initialMessage, sessionId]);
+  }, [hash, initialMessage, sessionId, toast]);
 
   const loadChatSession = async (sessionId: string) => {
     try {
-      const response = await fetch(`/api/chat/history?searchId=${searchId}&sessionId=${sessionId}`);
+      if (!hash) {
+        throw new Error('No search ID provided');
+      }
+      const response = await fetch(`/api/chat/history?h=${hash}&s=${sessionId}`);
       const data = await response.json();
       
       if (data.success) {
@@ -176,12 +155,13 @@ export default function Chatbot() {
   };
 
   const saveChat = async (newMessages: MessageType[]) => {
-    if (!searchId) {
+    if (!hash) {
       console.log('No searchId available, chat will not be saved');
       return;
     }
 
     try {
+      const searchId = decodeSearchId(hash);
       const response = await fetch('/api/chat/save', {
         method: 'POST',
         headers: {
@@ -253,7 +233,7 @@ export default function Chatbot() {
       setMessages(updatedMessages);
       
       // Save chat after both messages are added
-      if (searchId) {
+      if (hash) {
         await saveChat(updatedMessages);
       }
     } catch (error) {

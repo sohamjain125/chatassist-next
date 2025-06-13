@@ -8,6 +8,7 @@ import { AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PropertyDetails from '@/components/PropertyDetails';
 import { PropertyData } from '@/interface/property.interface';
+import { decodeIds } from '@/lib/hash';
 
 
 export default function PropertyPage() {
@@ -23,25 +24,28 @@ export default function PropertyPage() {
       setError(null);
 
       try {
-        // Get assessment number from URL data
-        const data = searchParams?.get('data');
-        if (!data) {
+        // Get property number and hash from URL
+        const propertyNo = searchParams?.get('p');
+        const hash = searchParams?.get('h');
+        
+        if (!propertyNo || !hash) {
           throw new Error('No property data available');
         }
 
-        const parsedData = JSON.parse(data) as { PropertyNo: string; SearchId: number };
-        const PropertyNo = parsedData.PropertyNo;
-        const searchId = parsedData.SearchId;
-
+        // Decode the hashed IDs
+        const { searchId, propertyId } = decodeIds(hash);
+        
         // Fetch property details
-        const propertyResponse = await fetch(`/api/property-details?assessmentNumber=${PropertyNo}`);
+        const propertyResponse = await fetch(`/api/property-details?assessmentNumber=${propertyNo}`);
         if (!propertyResponse.ok) {
           throw new Error('Failed to fetch property details');
         }
         const propertyDetails = await propertyResponse.json();
 
-        // Set SearchId
+        // Set SearchId and PropertyDetailId
+        propertyDetails.hash = hash;
         propertyDetails.SearchId = searchId;
+        propertyDetails.PropertyDetailId = propertyId;
 
         setPropertyData(propertyDetails);
       } catch (err) {

@@ -1,22 +1,20 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { MapPin, Menu, Loader2, ArrowLeft, Eye, MessageSquare } from 'lucide-react';
+import { MapPin, Menu, Loader2, ArrowLeft, Eye } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import Map from '@/components/Map';
 import { Button } from '@/components/ui/button';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Overlay, PropertyData, Zone } from '@/interface/property.interface';
-import { toast } from '@/components/ui/use-toast';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useSidebar } from '@/components/ui/sidebar';
 import StickyHeader from '@/components/layout/StickyHeader';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
+import { encodeIds, decodeIds } from '@/lib/hash';
 
 interface PropertyDetailsProps {
-  SearchId: number;
+  SearchId: string;
   Address: string;
   PropertyDetailId: number;
   PropertyNo: string;
@@ -35,6 +33,7 @@ interface PropertyDetailsProps {
   Longitude?: number;
   Property_ID?: string;
   buildingOutline?: any;
+  hash: string;
 }
 
 
@@ -91,10 +90,10 @@ export default function HistoryPage() {
 
 
   // Update fetchChatHistory to handle server-side storage
-  const fetchChatHistory = async (searchId: number) => {
+  const fetchChatHistory = async (hash: string) => {
     try {
       setIsLoadingChat(true);
-      const response = await fetch(`/api/chat/history?searchId=${searchId}`);
+      const response = await fetch(`/api/chat/history?h=${hash}`);
       const data = await response.json();
       
       if (data.success) {
@@ -154,54 +153,52 @@ export default function HistoryPage() {
     setLoading(true);
     setError(null);
 
-    try {
-      const dataParam = searchParams?.get('data');
-      if (!dataParam) {
-        throw new Error('No property data provided');
-      }
-
-      const propertyData = JSON.parse(decodeURIComponent(dataParam));
-      if (!propertyData || !propertyData.Address) {
-        throw new Error('Invalid property data format');
-      }
-
-      // Ensure all required fields have default values
-      const completePropertyData = {
-        ...propertyData,
-        PlanNo: propertyData.PlanNo || '',
-        Suburb: propertyData.Suburb || '',
-        State: propertyData.State || '',
-        Postcode: propertyData.Postcode || '',
-        LotNo: propertyData.LotNo || '',
-        SectionNo: propertyData.SectionNo || '',
-        Volume: propertyData.Volume || '',
-        Folio: propertyData.Folio || '',
-        SearchId: propertyData.SearchId || null,
-        PropertyNo: propertyData.PropertyNo || ''
-      };
-
-      console.log('Setting initial property details:', completePropertyData);
-      setPropertyDetails(completePropertyData);
-      setLoading(false);
-      
-      // Clear any existing timeout
-      if (fetchTimeout.current) {
-        clearTimeout(fetchTimeout.current);
-      }
-
-      // Add a small delay to prevent rapid re-fetching
-      fetchTimeout.current = setTimeout(() => {
-        if (completePropertyData.PropertyNo) {
-          fetchPropertyData(completePropertyData.PropertyNo);
+    const fetchData = async () => {
+      try {
+        const propertyNo = searchParams?.get('p');
+        const hash = searchParams?.get('h');
+        
+        if (!propertyNo || !hash) {
+          throw new Error('No property data provided');
         }
-      }, 100);
-
-    } catch (err) {
-      console.error('Error setting property data:', err);
-      setError(err instanceof Error ? err.message : 'Invalid property data format');
-      setLoading(false);
+  
+        // Decode the hashed IDs
+        const { searchId, propertyId } = decodeIds(hash);
+  
+        // Fetch property details
+        const propertyResponse = await fetch(`/api/property-details?assessmentNumber=${propertyNo}`);
+        if (!propertyResponse.ok) {
+          throw new Error('Failed to fetch property details');
+        }
+        const propertyDetails = await propertyResponse.json();
+  
+        // Set SearchId and PropertyDetailId
+        propertyDetails.SearchId = searchId;
+        propertyDetails.PropertyDetailId = propertyId;
+  
+        setPropertyDetails(propertyDetails);
+        setLoading(false);
+        
+        // Clear any existing timeout
+        if (fetchTimeout.current) {
+          clearTimeout(fetchTimeout.current);
+        }
+  
+        // Add a small delay to prevent rapid re-fetching
+        fetchTimeout.current = setTimeout(() => {
+          if (propertyNo) {
+            fetchPropertyData(propertyNo);
+          }
+        }, 100);
+  
+      } catch (err) {
+        console.error('Error setting property data:', err);
+        setError(err instanceof Error ? err.message : 'Invalid property data format');
+        setLoading(false);
+      }
+  
     }
-
+    fetchData();
     return () => {
       isMounted.current = false;
       if (fetchTimeout.current) {
@@ -237,11 +234,11 @@ export default function HistoryPage() {
   };
 
   useEffect(() => {
-    if (propertyDetails?.SearchId) {
-      console.log('Fetching chat history for SearchId:', propertyDetails.SearchId);
-      fetchChatHistory(propertyDetails.SearchId);
+    if (propertyDetails?.hash) {
+      console.log('Fetching chat history for SearchId:', propertyDetails.hash);
+      fetchChatHistory(propertyDetails.hash);
     }
-  }, [propertyDetails?.SearchId]);
+  }, [propertyDetails?.hash]);
 
   useEffect(() => {
     console.log('Property details updated:', propertyDetails);

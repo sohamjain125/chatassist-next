@@ -9,6 +9,7 @@ import { faHouse, faLocationDot } from '@fortawesome/free-solid-svg-icons';
 import { Loader2 } from 'lucide-react';
 import { UserInfo } from "@/interface/dashboard.interface";
 import { HistoryItem } from "@/interface/dashboard.interface";
+import { encodeIds } from '@/lib/hash';
 
 
 export default function Dashboard() {
@@ -18,7 +19,7 @@ export default function Dashboard() {
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-
+  const [showAllSearches, setShowAllSearches] = useState(false);
   useEffect(() => {
     // Check for token on client side
     const token = document.cookie.split('; ').find(row => row.startsWith('auth_token='))?.split('=')[1];
@@ -145,6 +146,8 @@ export default function Dashboard() {
     router.push("/historical-data");
   };
 
+  const searchesToShow = showAllSearches ? recentSearches : recentSearches.slice(0, 3);
+
   return (
     <div className="space-y-6 mt-6 relative">
       {(isSearchLoading || isHistoryLoading || isLoading) && (
@@ -230,86 +233,59 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentSearches.length > 0 ? (
-                <>
-                  {recentSearches.slice(0, 3).map((search, index) => {
-                    const addressParts = parseAddress(search.Address);
-                    return (
-                      <div 
-                        key={index} 
-                        className="flex items-center justify-between p-4 bg-muted/40 rounded-lg hover:bg-muted/60 transition-colors"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                            <FontAwesomeIcon
-                              icon={faLocationDot}
-                              className="h-5 w-5 text-primary"
-                            />
-                          </div>
-                          <div>
-                            <div className="font-medium text-base">{addressParts.street}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {addressParts.suburb && `${addressParts.suburb}, `}
-                              {addressParts.state && `${addressParts.state} `}
-                              {addressParts.postcode && addressParts.postcode}
-                            </div>
-                            <div className="text-xs text-muted-foreground mt-1">
-                              Searched on {formatDateTime(search.CreatedAt)}
-                            </div>
-                          </div>
+              {searchesToShow.map((search, index) => {
+                const addressParts = parseAddress(search.Address);
+                return (
+                  <div 
+                    key={index} 
+                    className="flex items-center justify-between p-4 bg-muted/40 rounded-lg hover:bg-muted/60 transition-colors"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <FontAwesomeIcon
+                          icon={faLocationDot}
+                          className="h-5 w-5 text-primary"
+                        />
+                      </div>
+                      <div>
+                        <div className="font-medium text-base">{addressParts.street}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {addressParts.suburb && `${addressParts.suburb}, `}
+                          {addressParts.state && `${addressParts.state} `}
+                          {addressParts.postcode && addressParts.postcode}
                         </div>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              const propertyData = {
-                                SearchId: search.SearchId,
-                                Address: search.Address,
-                                PropertyDetailId: search.PropertyDetailId,
-                                PropertyNo: search.PropertyNo,
-                                CreatedAt: search.CreatedAt,
-                                PlanNo: search.PlanNo || '',
-                                Suburb: search.Suburb || '',
-                                State: search.State || '',
-                                Postcode: search.Postcode || '',
-                                LotNo: search.LotNo || '',
-                                SectionNo: search.SectionNo || '',
-                                Volume: search.Volume || '',
-                                Folio: search.Folio || ''
-                              };
-                              console.log('Navigating to history with data:', propertyData);
-                              const url = `/search-history?data=${encodeURIComponent(JSON.stringify(propertyData))}`;
-                              console.log('URL:', url);
-                              router.push(url);
-                            }}
-                          >
-                            View Details
-                          </Button>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          Searched on {formatDateTime(search.CreatedAt)}
                         </div>
                       </div>
-                    );
-                  })}
-                  {recentSearches.length > 3 && (
-                    <div className="text-center mt-6">
+                    </div>
+                    <div className="flex gap-2">
                       <Button
                         variant="outline"
-                        onClick={() => router.push('/search-history')}
+                        size="sm"
+                        onClick={() => {
+                          // Encode the IDs
+                          const encodedIds = encodeIds(search.SearchId, search.PropertyDetailId);
+                          
+                          // Create URL with only hashed IDs and property number
+                          const url = `/search-history?p=${search.PropertyNo}&h=${encodedIds}`;
+                          router.push(url);
+                        }}
                       >
-                        View All Searches
+                        View Details
                       </Button>
                     </div>
-                  )}
-                </>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <div className="h-16 w-16 mx-auto mb-4 rounded-full bg-muted/50 flex items-center justify-center">
-                    <FontAwesomeIcon
-                      icon={faLocationDot}
-                      className="h-8 w-8 text-muted-foreground"
-                    />
                   </div>
-                  <p className="text-lg mb-2">No recent searches found</p>
+                );
+              })}
+              {recentSearches.length > 3 && !showAllSearches && (
+                <div className="text-center mt-6">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowAllSearches(true)}
+                  >
+                    View All Searches
+                  </Button>
                 </div>
               )}
             </div>

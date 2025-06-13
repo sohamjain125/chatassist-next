@@ -1,4 +1,5 @@
 export interface PropertyData {
+  hash: string;
   PropertyDetailId: number;
   SearchId: number;
     Description: string;

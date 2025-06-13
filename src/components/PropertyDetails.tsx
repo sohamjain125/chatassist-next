@@ -15,6 +15,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Overlay, PropertyData, Zone } from '@/interface/property.interface';
 import { toast } from '@/components/ui/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { encodeSearchId } from '@/lib/hash';
 
 interface PropertyDetailsProps {
   propertyData: PropertyData;
@@ -128,7 +129,7 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
   };
 
   const handleAiClick = async () => {
-    if (!propertyData.SearchId) {
+    if (!propertyData.hash) {
       toast({
         title: "Error",
         description: "Search ID not found. Please try searching for the property again.",
@@ -140,7 +141,7 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
     
     try {
       // Check for previous sessions
-      const response = await fetch(`/api/chat/history?searchId=${propertyData.SearchId}`);
+      const response = await fetch(`/api/chat/history?h=${propertyData.hash}`);
       const data = await response.json();
       
       if (data.success && data.sessions && data.sessions.length > 0) {
@@ -157,7 +158,8 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
       }
       
       // If no previous sessions or no ended sessions, redirect to new chat
-      router.push(`/chat?searchId=${propertyData.SearchId}`);
+      const encodedSearchId = encodeSearchId(propertyData.SearchId);
+      router.push(`/chat?h=${encodedSearchId}`);
     } catch (error) {
       console.error('Error checking chat history:', error);
       toast({
@@ -205,23 +207,29 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            {previousSessions.map((session) => (
-              <div
-                key={session.LexSessionId}
-                className="p-4 border rounded-lg cursor-pointer hover:bg-muted"
-                onClick={() => router.push(`/chat?searchId=${propertyData.SearchId}&sessionId=${session.LexSessionId}`)}
-              >
-                <div className="font-medium">
-                  Chat from {new Date(session.CreatedAt).toLocaleString()}
+            {previousSessions.map((session) => {
+              const encodedSearchId = encodeSearchId(propertyData.SearchId);
+              return (
+                <div
+                  key={session.LexSessionId}
+                  className="p-4 border rounded-lg cursor-pointer hover:bg-muted"
+                  onClick={() => router.push(`/chat?h=${encodedSearchId}&s=${session.LexSessionId}`)}
+                >
+                  <div className="font-medium">
+                    Chat from {new Date(session.CreatedAt).toLocaleString()}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {session.firstMessage} ... {session.lastMessage}
+                  </div>
                 </div>
-                <div className="text-sm text-muted-foreground">
-                  {session.firstMessage} ... {session.lastMessage}
-                </div>
-              </div>
-            ))}
+              );
+            })}
             <Button
               className="w-full"
-              onClick={() => router.push(`/chat?searchId=${propertyData.SearchId}`)}
+              onClick={() => {
+                const encodedSearchId = encodeSearchId(propertyData.SearchId);
+                router.push(`/chat?h=${encodedSearchId}`);
+              }}
             >
               Start New Chat
             </Button>
