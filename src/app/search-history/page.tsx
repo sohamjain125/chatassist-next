@@ -12,6 +12,7 @@ import StickyHeader from '@/components/layout/StickyHeader';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { encodeIds, decodeIds } from '@/lib/hash';
+import { formatTime, formatDateTime } from '@/lib/time';
 
 interface PropertyDetailsProps {
   SearchId: string;
@@ -420,7 +421,7 @@ useEffect(() => {
                               <div className="flex flex-col">
                                 <div className="font-medium">Property Assistant</div>
                                 <div className="text-xs text-muted-foreground">
-                                  {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  {formatTime(message.timestamp)}
                                 </div>
                               </div>
                             </div>
@@ -428,7 +429,7 @@ useEffect(() => {
                           <div className="text-sm">{message.content}</div>
                           {message.sender === "user" && (
                             <div className="text-xs text-right mt-1 text-primary-foreground/70">
-                              {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              {formatTime(message.timestamp)}
                             </div>
                           )}
                         </div>
@@ -452,7 +453,7 @@ useEffect(() => {
                         <div className="flex justify-between items-start">
                           <div>
                             <div className="font-medium">
-                              Chat from {new Date(session.CreatedAt).toLocaleString()}
+                              Chat from {formatDateTime(session.CreatedAt)}
                             </div>
                             <div className="text-sm text-muted-foreground mt-1">
                               {session.firstMessage} ... {session.lastMessage}

@@ -11,6 +11,7 @@ import { UserInfo } from "@/interface/dashboard.interface";
 import { HistoryItem } from "@/interface/dashboard.interface";
 import { encodeIds } from '@/lib/hash';
 import { useUser } from '@/hooks/useUser';
+import { formatDateTime } from '@/lib/time';
 
 
 export default function Dashboard() {
@@ -53,24 +54,6 @@ export default function Dashboard() {
         });
     }
   }, [router]);
-
-  // Format date and time function
-  const formatDateTime = (dateString: string) => {
-    if (!dateString) return '';
-
-    try {
-      const date = new Date(dateString);
-      return new Intl.DateTimeFormat('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      }).format(date);
-    } catch (e) {
-      return dateString;
-    }
-  };
 
   // Parse address components
   const parseAddress = (address: string) => {

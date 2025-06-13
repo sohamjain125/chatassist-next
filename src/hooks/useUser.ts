@@ -1,10 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { UserInfo } from '@/interface/user.interface';
 
-type UserApiResponse = {
-  success: boolean;
-  user: UserInfo;
-};
 
 export function useUser() {
   return useQuery({

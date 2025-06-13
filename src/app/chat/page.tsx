@@ -11,6 +11,7 @@ import { sendMessageToLex } from "@/services/lexService";
 import { useToast } from "@/hooks/use-toast";
 import { ImageResponseCard } from "@aws-sdk/client-lex-runtime-v2";
 import { decodeSearchId } from '@/lib/hash';
+import { formatTime } from '@/lib/time';
 
 type MessageType = {
   id: string;
@@ -336,7 +337,7 @@ export default function Chatbot() {
                         <div className="flex flex-col">
                           <div className="font-medium">Property Assistant</div>
                           <div className="text-xs text-muted-foreground">
-                            {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {formatTime(message.timestamp)}
                           </div>
                         </div>
                       </div>
@@ -362,7 +363,7 @@ export default function Chatbot() {
                     )}
                     {message.sender === "user" && (
                       <div className="text-xs text-right mt-1 text-primary-foreground/70">
-                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {formatTime(message.timestamp)}
                       </div>
                     )}
                   </div>

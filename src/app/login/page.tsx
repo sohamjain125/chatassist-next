@@ -30,7 +30,7 @@ function LoginContent() {
       });
       const data = await res.json();
       if (res.ok && data.token) {
-        document.cookie = `auth_token=${data.token}; path=/`;
+        document.cookie = `auth_token=${data.token};`;
         toast({
           title: 'Login successful',
           description: 'Welcome back!',

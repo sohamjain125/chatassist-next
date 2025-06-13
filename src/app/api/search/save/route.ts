@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server';
 import { sql, getConnection } from '@/lib/db';
 import { verifyToken } from '@/lib/auth';
 import { cookies } from 'next/headers';
+import { formatInTimeZone } from 'date-fns-tz';
+import { encodeIds, encodePropertyId, encodeSearchId } from '@/lib/hash';
+
+const TIMEZONE = 'Australia/Melbourne';
 
 export async function POST(req: Request) {
   let transaction;
@@ -38,22 +42,31 @@ export async function POST(req: Request) {
     // Helper function to handle null values
     const getValue = (value: any) => value === null || value === undefined ? null : value;
 
+    // Get current UTC timestamp
+    const utcNow = new Date(formatInTimeZone(new Date(), TIMEZONE, "yyyy-MM-dd'T'HH:mm:ssXXX"));
+
     // First, insert into Search table and get the generated SearchId
     const searchResult = await transaction.request()
       .input('UserId', sql.Int, user.UserId)
       .input('Latitude', sql.Float, getValue(propertyData.Latitude))
       .input('Longitude', sql.Float, getValue(propertyData.Longitude))
+      .input('CreatedAt', sql.DateTime, utcNow)
+      .input('UpdatedAt', sql.DateTime, utcNow)
       .query(`
         INSERT INTO Search (
           UserId,
           Latitude,
-          Longitude
+          Longitude,
+          CreatedAt,
+          UpdatedAt
         )
         OUTPUT INSERTED.SearchId
         VALUES (
           @UserId,
           @Latitude,
-          @Longitude
+          @Longitude,
+          @CreatedAt,
+          @UpdatedAt
         )
       `);
 
@@ -372,8 +385,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ 
       success: true, 
-      searchId,
-      propertyDetailId
+      hash:encodeIds(searchId, propertyDetailId)
     });
   } catch (error) {
     console.error('Error saving search:', error);

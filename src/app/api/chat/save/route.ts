@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { sql, getConnection } from '@/lib/db';
 import { verifyToken } from '@/lib/auth';
 import { cookies } from 'next/headers';
+import { formatInTimeZone } from 'date-fns-tz';
+
+const TIMEZONE = 'Australia/Melbourne';
 
 export async function POST(req: Request) {
   let transaction;
@@ -56,12 +59,15 @@ export async function POST(req: Request) {
 
     // Insert messages with deduplication
     for (const msg of messages) {
+      // Convert timestamp to UTC before saving
+      const utcTimestamp = new Date(formatInTimeZone(new Date(msg.timestamp), TIMEZONE, "yyyy-MM-dd'T'HH:mm:ssXXX"));
+      
       // Check if message already exists
       const existingMessage = await transaction.request()
         .input('ChatSessionId', sql.Int, chatSessionId)
         .input('Content', sql.NVarChar, msg.content)
         .input('Sender', sql.NVarChar, msg.sender)
-        .input('Timestamp', sql.DateTime, new Date(msg.timestamp))
+        .input('Timestamp', sql.DateTime, utcTimestamp)
         .query(`
           SELECT TOP 1 ChatMessageId
           FROM ChatMessage
@@ -77,7 +83,7 @@ export async function POST(req: Request) {
           .input('ChatSessionId', sql.Int, chatSessionId)
           .input('Content', sql.NVarChar, msg.content)
           .input('Sender', sql.NVarChar, msg.sender)
-          .input('Timestamp', sql.DateTime, new Date(msg.timestamp))
+          .input('Timestamp', sql.DateTime, utcTimestamp)
           .input('ResponseCard', sql.NVarChar, msg.responseCard ? JSON.stringify(msg.responseCard) : null)
           .query(`
             INSERT INTO ChatMessage (

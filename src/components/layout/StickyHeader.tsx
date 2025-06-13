@@ -44,7 +44,7 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({
   }, []);
 
   const handleLogout = () => {
-    document.cookie = 'auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    document.cookie = 'auth_token=;';
     router.push('/login');
   };
 

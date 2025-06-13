@@ -242,13 +242,10 @@ export default function Search() {
         throw new Error('Failed to save search');
       }
 
-      const { searchId, propertyDetailId } = await response.json();
+      const { hash } = await response.json();
 
-      // Encode both IDs into a single hash
-      const encodedIds = encodeIds(searchId, propertyDetailId);
-      
       // Navigate to property page with only the hashed IDs and property number
-      router.push(`/property?p=${selectedProperty.PropertyNo}&h=${encodedIds}`);
+      router.push(`/property?p=${selectedProperty.PropertyNo}&h=${hash}`);
     } catch (error) {
       console.error('Error saving search:', error);
       setError('Failed to save search');
