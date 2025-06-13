@@ -1,11 +1,10 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { MapPin, MessageSquare, Menu, Loader2 } from 'lucide-react';
+import { MapPin, Menu, Loader2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import Map from '@/components/Map';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { useRouter, useSearchParams } from 'next/navigation';
 import StickyHeader from './layout/StickyHeader';
 import { useSidebar } from './ui/sidebar';

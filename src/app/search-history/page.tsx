@@ -53,39 +53,6 @@ export default function HistoryPage() {
   const [selectedChat, setSelectedChat] = useState<any>(null);
   const [isLoadingChat, setIsLoadingChat] = useState(false);
 
-  const fetchPropertyData = useCallback(async (PropertyNo: string) => {
-    try {
-      console.log('Fetching zones and overlays for property:', PropertyNo);
-      const [propertyResponse, zonesResponse, overlaysResponse] = await Promise.all([
-        fetch(`/api/property-details?assessmentNumber=${PropertyNo}`),
-        fetch(`/api/zone?assessmentNumber=${PropertyNo}`),
-        fetch(`/api/overlay?assessmentNumber=${PropertyNo}`)
-      ]);
-
-      if (!propertyResponse.ok || !zonesResponse.ok || !overlaysResponse.ok) {
-        throw new Error('Failed to fetch property data');
-      }
-
-      const [propertyData, zonesData, overlaysData] = await Promise.all([
-        propertyResponse.json(),
-        zonesResponse.json(),
-        overlaysResponse.json()
-      ]);
-
-      if (isMounted.current) {
-        setZones(Array.isArray(zonesData) ? zonesData : []);
-        setOverlays(Array.isArray(overlaysData) ? overlaysData : []);
-        setPropertyDetails(prev => ({
-          ...prev,
-          ...propertyData,
-          PropertyNo: PropertyNo
-        }));
-      }
-    } catch (err) {
-      console.error('Error fetching property data:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch property data');
-    }
-  }, []);
 
 
 
@@ -147,66 +114,72 @@ export default function HistoryPage() {
     }
   };
 
-  // Update initial data loading useEffect
-  useEffect(() => {
-    isMounted.current = true;
-    setLoading(true);
-    setError(null);
-
-    const fetchData = async () => {
-      try {
-        const propertyNo = searchParams?.get('p');
-        const hash = searchParams?.get('h');
-        
-        if (!propertyNo || !hash) {
-          throw new Error('No property data provided');
-        }
-  
-        // Decode the hashed IDs
-        const { searchId, propertyId } = decodeIds(hash);
-  
-        // Fetch property details
-        const propertyResponse = await fetch(`/api/property-details?assessmentNumber=${propertyNo}`);
-        if (!propertyResponse.ok) {
-          throw new Error('Failed to fetch property details');
-        }
-        const propertyDetails = await propertyResponse.json();
-  
-        // Set SearchId and PropertyDetailId
-        propertyDetails.SearchId = searchId;
-        propertyDetails.PropertyDetailId = propertyId;
-  
-        setPropertyDetails(propertyDetails);
-        setLoading(false);
-        
-        // Clear any existing timeout
-        if (fetchTimeout.current) {
-          clearTimeout(fetchTimeout.current);
-        }
-  
-        // Add a small delay to prevent rapid re-fetching
-        fetchTimeout.current = setTimeout(() => {
-          if (propertyNo) {
-            fetchPropertyData(propertyNo);
-          }
-        }, 100);
-  
-      } catch (err) {
-        console.error('Error setting property data:', err);
-        setError(err instanceof Error ? err.message : 'Invalid property data format');
-        setLoading(false);
+  const fetchPropertyData = useCallback(async (PropertyNo: string) => {
+    try {
+      const response = await fetch(`/api/property-data?assessmentNumber=${PropertyNo}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch property data');
       }
-  
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to fetch property data');
+      }
+      if (isMounted.current) {
+        setZones(Array.isArray(data.zones) ? data.zones : []);
+        setOverlays(Array.isArray(data.overlays) ? data.overlays : []);
+        setPropertyDetails(prev => ({
+          ...prev,
+          ...data.property,
+          PropertyNo: PropertyNo
+        }));
+      }
+    } catch (err) {
+      console.error('Error fetching property data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch property data');
+    } finally {
+      setLoading(false);
     }
-    fetchData();
-    return () => {
-      isMounted.current = false;
-      if (fetchTimeout.current) {
-        clearTimeout(fetchTimeout.current);
-      }
-    };
-  }, [searchParams, fetchPropertyData]);
+  }, []);
 
+  // Update initial data loading useEffect
+useEffect(() => {
+  isMounted.current = true;
+  setLoading(true);
+  setError(null);
+
+  const fetchData = async () => {
+    try {
+      const propertyNo = searchParams?.get('p');
+      const hash = searchParams?.get('h');
+      
+      if (!propertyNo || !hash) {
+        throw new Error('No property data provided');
+      }
+
+      // Decode the hashed IDs (if you need to use them)
+      const { searchId, propertyId } = decodeIds(hash);
+
+      // Fetch all property data (details, zones, overlays) in one call
+      await fetchPropertyData(propertyNo);
+
+      // If you need to set SearchId/PropertyDetailId, do it inside fetchPropertyData
+      // or after the fetch here, using setPropertyDetails
+
+    } catch (err) {
+      console.error('Error setting property data:', err);
+      setError(err instanceof Error ? err.message : 'Invalid property data format');
+      setLoading(false);
+    }
+  };
+
+  fetchData();
+  return () => {
+    isMounted.current = false;
+    if (fetchTimeout.current) {
+      clearTimeout(fetchTimeout.current);
+    }
+  };
+}, [searchParams, fetchPropertyData]);
 
   const SidebarToggle = () => {
     const { toggleSidebar, state } = useSidebar();
@@ -380,6 +353,7 @@ export default function HistoryPage() {
                   </div>
 
                   {/* Overlays Section */}
+                  {overlays.length > 0 && (
                   <div style={{paddingTop: '10px'}}>
                     <h3 className="text-lg font-semibold mb-3">Overlays</h3>
                     <dl className="space-y-2">
@@ -391,6 +365,7 @@ export default function HistoryPage() {
                       ))}
                     </dl>
                   </div>
+                  )}
                 </div>
               </div>
             </Card>
