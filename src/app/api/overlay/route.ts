@@ -83,10 +83,8 @@ export async function GET(request: Request) {
 
     if (!response.ok) {
       if (response.status === 404) {
-        return NextResponse.json(
-          { success: false, error: 'No overlays found for this property' },
-          { status: 404 }
-        );
+        // Return an empty array for no overlays
+        return NextResponse.json([], { status: 200 });
       }
       throw new Error(`API responded with status: ${response.status} - ${response.statusText}`);
     }

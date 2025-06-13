@@ -24,7 +24,9 @@ export async function POST(req: Request) {
       );
     }
 
-    const { propertyData, zones, overlays } = await req.json();
+    let { propertyData, zones, overlays } = await req.json();
+    zones = Array.isArray(zones) ? zones : [];
+    overlays = Array.isArray(overlays) ? overlays : [];
 
     // Get database connection
     const pool = await getConnection();

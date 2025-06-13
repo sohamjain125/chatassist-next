@@ -140,6 +140,10 @@ export default function Search() {
         overlaysResponse.json()
       ]);
 
+      // Ensure overlays and zones are always arrays
+      const safeZones = Array.isArray(zones) ? zones : [];
+      const safeOverlays = Array.isArray(overlays) ? overlays : [];
+
       const propertyData = {
         Description: selectedProperty.Description,
         PropertyNo: selectedProperty.PropertyNo,
@@ -224,8 +228,8 @@ export default function Search() {
         },
         body: JSON.stringify({
           propertyData,
-          zones,
-          overlays
+          zones: safeZones,
+          overlays: safeOverlays
         }),
       });
 
