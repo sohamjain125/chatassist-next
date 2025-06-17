@@ -50,6 +50,23 @@ export async function GET(req: Request) {
 
     const pool = await getConnection();
 
+    // First verify that the user has access to this search
+    const searchResult = await pool.request()
+      .input('SearchId', sql.Int, searchId)
+      .input('UserId', sql.Int, user.UserId)
+      .query(`
+        SELECT SearchId 
+        FROM Search 
+        WHERE SearchId = @SearchId AND UserId = @UserId
+      `);
+
+    if (searchResult.recordset.length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'Access denied' },
+        { status: 403 }
+      );
+    }
+
     if (sessionId) {
       // Get specific chat session and messages
       const { recordset: sessions } = await pool.request()

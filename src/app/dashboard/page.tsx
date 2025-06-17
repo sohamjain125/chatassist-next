@@ -40,7 +40,7 @@ export default function Dashboard() {
           const historyData = await historyRes.json();
           if (historyData.success) {
             // Sort searches by timestamp in descending order (latest first)
-            const sortedSearches = historyData.searches.sort((a: HistoryItem, b: HistoryItem) => 
+            const sortedSearches = historyData.searches.sort((a: HistoryItem, b: HistoryItem) =>
               new Date(b.CreatedAt).getTime() - new Date(a.CreatedAt).getTime()
             );
             setRecentSearches(sortedSearches);
@@ -68,11 +68,11 @@ export default function Dashboard() {
 
     try {
       const parts = address.split(',').map(part => part.trim());
-      
+
       if (parts.length >= 3) {
         const [street, suburb, statePostcode] = parts;
         const statePostcodeParts = statePostcode.split(' ').filter(Boolean);
-        
+
         if (statePostcodeParts.length >= 2) {
           const state = statePostcodeParts[0];
           const postcode = statePostcodeParts[1];
@@ -84,7 +84,7 @@ export default function Dashboard() {
           };
         }
       }
-      
+
       // Fallback for addresses that don't match the expected format
       return {
         street: address,
@@ -109,7 +109,7 @@ export default function Dashboard() {
   };
 
   const handleHistoryClick = () => {
-    
+
     router.push("/historical-data");
   };
 
@@ -200,63 +200,69 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {searchesToShow.map((search, index) => {
-                const addressParts = parseAddress(search.Address);
-                return (
-                  <div 
-                    key={index} 
-                    className="flex items-center justify-between p-4 bg-muted/40 rounded-lg hover:bg-muted/60 transition-colors"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        <FontAwesomeIcon
-                          icon={faLocationDot}
-                          className="h-5 w-5 text-primary"
-                        />
-                      </div>
-                      <div>
-                        <div className="font-medium text-base">{addressParts.street}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {addressParts.suburb && `${addressParts.suburb}, `}
-                          {addressParts.state && `${addressParts.state} `}
-                          {addressParts.postcode && addressParts.postcode}
+              {searchesToShow.length === 0 ? (
+                <div className="text-center text-muted-foreground text-sm">
+                  No recent searches.
+                </div>
+              ) : (
+                <>
+                  {searchesToShow.map((search, index) => {
+                    const addressParts = parseAddress(search.Address);
+                    return (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-4 bg-muted/40 rounded-lg hover:bg-muted/60 transition-colors"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                            <FontAwesomeIcon
+                              icon={faLocationDot}
+                              className="h-5 w-5 text-primary"
+                            />
+                          </div>
+                          <div>
+                            <div className="font-medium text-base">{addressParts.street}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {addressParts.suburb && `${addressParts.suburb}, `}
+                              {addressParts.state && `${addressParts.state} `}
+                              {addressParts.postcode && addressParts.postcode}
+                            </div>
+                            <div className="text-xs text-muted-foreground mt-1">
+                              Searched on {formatDateTime(search.CreatedAt)}
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-xs text-muted-foreground mt-1">
-                          Searched on {formatDateTime(search.CreatedAt)}
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const encodedIds = encodeIds(search.SearchId, search.PropertyDetailId);
+                              const url = `/search-history?p=${search.PropertyNo}&h=${encodedIds}`;
+                              router.push(url);
+                            }}
+                          >
+                            View Details
+                          </Button>
                         </div>
                       </div>
-                    </div>
-                    <div className="flex gap-2">
+                    );
+                  })}
+                  {recentSearches.length > 3 && !showAllSearches && (
+                    <div className="text-center mt-6">
                       <Button
                         variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          // Encode the IDs
-                          const encodedIds = encodeIds(search.SearchId, search.PropertyDetailId);
-                          
-                          // Create URL with only hashed IDs and property number
-                          const url = `/search-history?p=${search.PropertyNo}&h=${encodedIds}`;
-                          router.push(url);
-                        }}
+                        onClick={() => setShowAllSearches(true)}
                       >
-                        View Details
+                        View All Searches
                       </Button>
                     </div>
-                  </div>
-                );
-              })}
-              {recentSearches.length > 3 && !showAllSearches && (
-                <div className="text-center mt-6">
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowAllSearches(true)}
-                  >
-                    View All Searches
-                  </Button>
-                </div>
+                  )}
+                </>
               )}
             </div>
           </CardContent>
+
         </Card>
       </div>
     </div>
