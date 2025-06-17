@@ -7,7 +7,6 @@ import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHouse, faLocationDot } from '@fortawesome/free-solid-svg-icons';
 import { Loader2 } from 'lucide-react';
-import { UserInfo } from "@/interface/dashboard.interface";
 import { HistoryItem } from "@/interface/dashboard.interface";
 import { encodeIds } from '@/lib/hash';
 import { useUser } from '@/hooks/useUser';
@@ -16,7 +15,7 @@ import { formatDateTime } from '@/lib/time';
 
 export default function Dashboard() {
   const router = useRouter();
-  const { data: userData, isLoading: isUserLoading, error: userError } = useUser();
+  const { user, isLoading: isUserLoading, error: userError } = useUser();
   const [recentSearches, setRecentSearches] = useState<HistoryItem[]>([]);
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
@@ -129,7 +128,7 @@ export default function Dashboard() {
       )}
       <div className="flex flex-col space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">
-          Welcome back, {userData?.user.firstname} {userData?.user.lastname}!
+          Welcome back, {user?.firstname} {user?.lastname}!
         </h1>
         <p className="text-muted-foreground">
           How would you like to me to help you today?
