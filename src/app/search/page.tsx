@@ -253,7 +253,7 @@ export default function Search() {
   };
 
   return (
-    <div className="h-screen overflow-y-auto bg-gray-50 relative">
+    <div className="min-h-screen  bg-gray-50 relative">
       {(isLoading || isContinueLoading) && (
         <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="flex flex-col items-center gap-2">
@@ -264,7 +264,7 @@ export default function Search() {
           </div>
         </div>
       )}
-      <div className=" mx-auto px-4 py-4 min-h-[145vh]">
+      <div className=" mx-auto px-4 py-4">
         <div className="mx-auto">
           <h1 className="text-3xl font-bold mb-4">Find answers for your property</h1>
           <p className="text-gray-600 mb-4">

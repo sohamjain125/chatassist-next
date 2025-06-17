@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import PropertyDetails from '@/components/PropertyDetails';
 import { PropertyData } from '@/interface/property.interface';
 import { decodeIds } from '@/lib/hash';
-
+import { Loading } from '@/components/ui/loading';
 
 export default function PropertyPage() {
   const searchParams = useSearchParams();
@@ -59,6 +59,15 @@ export default function PropertyPage() {
     fetchData();
   }, [searchParams]);
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <StickyHeader showBackButton />
+        <Loading text="Loading property details..." />
+      </div>
+    );
+  }
+
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -82,12 +91,7 @@ export default function PropertyPage() {
     return (
       <div className="min-h-screen bg-gray-50">
         <StickyHeader showBackButton />
-        <div className="container mx-auto px-4 py-8">
-          <div className="animate-pulse">
-            <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-          </div>
-        </div>
+        <Loading text="Initializing property view..." />
       </div>
     );
   }

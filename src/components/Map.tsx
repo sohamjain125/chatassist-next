@@ -11,9 +11,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Loader } from '@googlemaps/js-api-loader';
 import proj4 from 'proj4';
 import { MapProps } from '@/interface/map.interface';
-
-
-
+import { Loading } from '@/components/ui/loading';
 
 // Function to transform from EPSG:3111 to WGS84
 const transformFromEPSG3111 = (x: number, y: number) => {
@@ -25,7 +23,6 @@ const transformFromEPSG3111 = (x: number, y: number) => {
   
   // Transform the coordinates
   const [lng, lat] = proj4(sourceProj, targetProj, [x, y]);
-
   
   return { lat, lng };
 };
@@ -60,7 +57,7 @@ const fetchPropertyData = async (pfi: string) => {
 };
 
 export default function Map({
-  center , // Default to Torquay
+  center,
   zoom = 13,
   onLocationSelect,
   onAddressSelect,
@@ -80,6 +77,7 @@ export default function Map({
   const [searchBox, setSearchBox] = useState<google.maps.places.SearchBox | null>(null);
   const [searchQuery, setSearchQuery] = useState(initialAddress);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingProperty, setIsLoadingProperty] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const geocoder = useRef<google.maps.Geocoder | null>(null);
@@ -311,14 +309,19 @@ export default function Map({
 
   // Add effect to fetch property data when PFI changes
   useEffect(() => {
-    if (propertyPfi) {
+    if (propertyPfi && map) {
       const loadPropertyData = async () => {
-        const data = await fetchPropertyData(propertyPfi);
-        if (data) {
+        setIsLoadingProperty(true);
+        try {
+          const response = await fetch(`/api/property-data?pfi=${propertyPfi}`);
+          if (!response.ok) {
+            throw new Error('Failed to fetch property data');
+          }
+          const data = await response.json();
           setPropertyData(data);
           
           // Create polygon from property coordinates
-          if (map && data.coordinates) {
+          if (data.coordinates) {
             const polygon = new google.maps.Polygon({
               paths: data.coordinates,
               strokeColor: "#4285F4",
@@ -349,11 +352,20 @@ export default function Map({
             });
             infoWindow.open(map);
           }
+        } catch (error) {
+          console.error('Error loading property data:', error);
+          toast({
+            title: 'Error',
+            description: 'Failed to load property data',
+            variant: 'destructive'
+          });
+        } finally {
+          setIsLoadingProperty(false);
         }
       };
       loadPropertyData();
     }
-  }, [propertyPfi, map]);
+  }, [propertyPfi, map, toast]);
 
   if (error) {
     return (
@@ -366,65 +378,43 @@ export default function Map({
   }
 
   return (
-    <Card className={className}>
-      <CardContent className="p-4">
+    <Card className={`relative ${className}`}>
+      {(isLoading || isLoadingProperty) && (
+        <Loading 
+          fullScreen={false} 
+          text={isLoading ? "Loading map..." : "Loading property data..."} 
+          containerClassName="absolute inset-0 bg-background/80 backdrop-blur-sm z-50"
+        />
+      )}
+      <CardContent className="p-0">
         {showSearch && (
-          <div className="relative mb-4">
-            <Input
-              ref={inputRef}
-              type="text"
-              placeholder="Search for a location"
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setShowSuggestions(true);
-              }}
-              className="pr-24"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => {
-                  setSearchQuery('');
-                  setSuggestions([]);
-                  setShowSuggestions(false);
-                }}
-                className="absolute right-12 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
-            <Button
-              size="sm"
-              variant="ghost"
-              className="absolute right-2 top-1/2 -translate-y-1/2"
-            >
-              <SearchIcon className="h-4 w-4" />
-            </Button>
-            {showSuggestions && suggestions.length > 0 && (
-              <div
-                ref={suggestionsRef}
-                className="absolute left-0 right-0 mt-1 bg-white border rounded shadow z-50 max-h-60 overflow-y-auto"
-              >
-                {suggestions.map((suggestion) => (
-                  <div
-                    key={suggestion.place_id}
-                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
-                    onClick={() => {
-                      setSearchQuery(suggestion.description);
-                      setShowSuggestions(false);
-                    }}
-                  >
-                    {suggestion.description}
-                  </div>
-                ))}
-              </div>
-            )}
+          <div className="p-4 border-b">
+            <div className="relative">
+              <Input
+                ref={inputRef}
+                type="text"
+                placeholder="Search for a location..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pr-10"
+              />
+              {searchQuery && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-0"
+                  onClick={() => setSearchQuery('')}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
           </div>
         )}
         <div
           ref={mapRef}
-          style={{ height }}
-          className="w-full rounded-lg"
+          style={{ height: height || '400px' }}
+          className="w-full"
         />
       </CardContent>
     </Card>
