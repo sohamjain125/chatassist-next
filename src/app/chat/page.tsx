@@ -61,7 +61,7 @@ export default function Chatbot() {
           throw new Error('No search ID provided');
         }
 
-        const searchId = decodeSearchId(hash);
+        // const searchId = decodeSearchId(hash);
         const response = await fetch(`/api/chat/history?h=${hash}&s=${sessionId}`);
         const data = await response.json();
        
