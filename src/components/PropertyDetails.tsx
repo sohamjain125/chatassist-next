@@ -157,6 +157,13 @@ export default function PropertyDetails({ propertyData }: PropertyDetailsProps) 
 
       // If no previous sessions or no ended sessions, redirect to new chat
       const encodedSearchId = encodeSearchId(propertyData.SearchId);
+      // Store property data in sessionStorage before redirecting
+      sessionStorage.setItem('propertyContext', JSON.stringify({
+        zones,
+        overlays,
+        allotmentArea: propertyData.AllotmentArea,
+        address: propertyData.Address
+      }));
       router.push(`/chat?h=${encodedSearchId}`);
     } catch (error) {
       console.error('Error checking chat history:', error);

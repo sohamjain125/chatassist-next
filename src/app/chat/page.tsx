@@ -65,7 +65,6 @@ export default function Chatbot() {
         const response = await fetch(`/api/chat/history?h=${hash}&s=${sessionId}`);
         const data = await response.json();
        
-
         if (data.success && data.sessions?.length > 0) {
           // Find the most recent active session
           const activeSession = data.sessions.find((session: any) => session.Status === 'active');
@@ -79,10 +78,30 @@ export default function Chatbot() {
             return;
           }
         }
+
         // If no active session found, only set sessionExists if sessionId is present
         setSessionExists(!!sessionId);
-        // For new chat, show welcome message only
+
+        // For new chat, show welcome message and send initial context
         if (!sessionId) {
+          // Get property context from sessionStorage
+          const propertyContextStr = sessionStorage.getItem('propertyContext');
+          const propertyContext = propertyContextStr ? JSON.parse(propertyContextStr) : undefined;
+
+          // Send initial context message to Lex
+          if (propertyContext) {
+            try {
+              // Send a minimal initialization message
+              await sendMessageToLex(
+                "INIT_CONTEXT",
+                currentSessionId.current,
+                propertyContext
+              );
+            } catch (error) {
+              console.error('Error sending initial context:', error);
+            }
+          }
+
           const welcomeMessage: MessageType = {
             id: "welcome",
             content: "Hello! I'm your property assistant.",
@@ -343,20 +362,28 @@ export default function Chatbot() {
     setIsTyping(true);
 
     try {
-      const response = await sendMessageToLex(input, currentSessionId.current);
+      const response = await sendMessageToLex(
+        input,
+        currentSessionId.current
+      );
+
       const botMessage: MessageType = {
-        id: (Date.now() + 1).toString(),
+        id: Date.now().toString(),
         content: response.message,
         sender: "bot",
         timestamp: new Date(),
         responseCard: response.responseCard
       };
+
       setMessages(prev => [...prev, botMessage]);
+      
+      // Save the chat after each message
+      await saveChat([...messages, userMessage, botMessage]);
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
         title: "Error",
-        description: "Failed to send message. Please try again.",
+        description: "Failed to send message",
         variant: "destructive",
       });
     } finally {

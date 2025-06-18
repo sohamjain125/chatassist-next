@@ -35,17 +35,42 @@ export interface LexResponse {
   responseCard?: LexImageResponseCard;
 }
 
+interface PropertyContext {
+  zones?: any[];
+  overlays?: any[];
+  allotmentArea?: number;
+  address?:string;
+}
+
 export const sendMessageToLex = async (
   message: string,
-  sessionId: string
+  sessionId: string,
+  propertyContext?: PropertyContext
 ): Promise<LexResponse> => {
   try {
+    // Prepare session attributes
+    const sessionAttributes = propertyContext ? {
+      hasPropertyContext: "true",
+      address:propertyContext.address || "",
+      allotmentArea: propertyContext.allotmentArea?.toString() || "",
+      // Only include zones and overlays if they exist and are not too large
+      ...(propertyContext.zones && propertyContext.zones.length > 0 && {
+        zones: JSON.stringify(propertyContext.zones)
+      }),
+      ...(propertyContext.overlays && propertyContext.overlays.length > 0 && {
+        overlays: JSON.stringify(propertyContext.overlays)
+      })
+    } : undefined;
+
     const command = new RecognizeTextCommand({
       botId: process.env.NEXT_PUBLIC_LEX_BOT_ID,
       botAliasId: process.env.NEXT_PUBLIC_LEX_BOT_ALIAS_ID,
       localeId: "en_US",
       sessionId,
       text: message,
+      sessionState: {
+        sessionAttributes
+      }
     });
 
     const response = await lexClient.send(command);
