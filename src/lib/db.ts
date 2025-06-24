@@ -13,8 +13,8 @@ const config = {
 
 export async function getConnection() {
   try {
+    console.log("env varables", config)
     const pool = await sql.connect(config);
-    console.log('Database connected successfully', pool);
     return pool;
   } catch (error) {
     console.error('Database connection error:', error);

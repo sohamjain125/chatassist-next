@@ -15,11 +15,18 @@ IF OBJECT_ID('Zone', 'U') IS NOT NULL DROP TABLE Zone;
 IF OBJECT_ID('PropertyDetail', 'U') IS NOT NULL DROP TABLE PropertyDetail;
 IF OBJECT_ID('Search', 'U') IS NOT NULL DROP TABLE Search;
 
+CREATE TABLE Users (
+    UserId INT IDENTITY(1,1) PRIMARY KEY,
+    firstName VARCHAR(200) NOT NULL,
+    lastName VARCHAR(200) NOT NULL,
+    email VARCHAR(200) NOT NULL,
+    password VARCHAR(200) NOT NULL,
+);
+
 -- Create Search table
 CREATE TABLE Search (
     SearchId INT IDENTITY(1,1) PRIMARY KEY,
     UserId INT NOT NULL,
-    Address VARCHAR(200) NOT NULL,
     Latitude FLOAT,
     Longitude FLOAT,
     CreatedAt DATETIME DEFAULT GETDATE(),
